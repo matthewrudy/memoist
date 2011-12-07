@@ -1,4 +1,5 @@
-require 'abstract_unit'
+require 'test_helper'
+require 'memoizable'
 
 class MemoizableTest < ActiveSupport::TestCase
   class Person
