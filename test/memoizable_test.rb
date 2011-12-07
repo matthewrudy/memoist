@@ -3,9 +3,7 @@ require 'memoizable'
 
 class MemoizableTest < ActiveSupport::TestCase
   class Person
-    ActiveSupport::Deprecation.silence do
-      extend ActiveSupport::Memoizable
-    end
+    extend ActiveSupport::Memoizable
 
     attr_reader :name_calls, :age_calls, :is_developer_calls, :name_query_calls
 
@@ -68,9 +66,7 @@ class MemoizableTest < ActiveSupport::TestCase
   end
 
   module Rates
-    ActiveSupport::Deprecation.silence do
-      extend ActiveSupport::Memoizable
-    end
+    extend ActiveSupport::Memoizable
 
     attr_reader :sales_tax_calls
     def sales_tax(price)
@@ -82,9 +78,7 @@ class MemoizableTest < ActiveSupport::TestCase
   end
 
   class Calculator
-    ActiveSupport::Deprecation.silence do
-      extend ActiveSupport::Memoizable
-    end
+    extend ActiveSupport::Memoizable
     include Rates
 
     attr_reader :fib_calls
@@ -222,9 +216,7 @@ class MemoizableTest < ActiveSupport::TestCase
 
   def test_object_memoization
     [Company.new, Company.new, Company.new].each do |company|
-      ActiveSupport::Deprecation.silence do
-        company.extend ActiveSupport::Memoizable
-      end
+      company.extend ActiveSupport::Memoizable
       company.memoize :name
 
       assert_equal "37signals", company.name
@@ -258,15 +250,11 @@ class MemoizableTest < ActiveSupport::TestCase
   def test_double_memoization
     assert_raise(RuntimeError) { Person.memoize :name }
     person = Person.new
-    ActiveSupport::Deprecation.silence do
-      person.extend ActiveSupport::Memoizable
-    end
+    person.extend ActiveSupport::Memoizable
     assert_raise(RuntimeError) { person.memoize :name }
 
     company = Company.new
-    ActiveSupport::Deprecation.silence do
-      company.extend ActiveSupport::Memoizable
-    end
+    company.extend ActiveSupport::Memoizable
     company.memoize :name
     assert_raise(RuntimeError) { company.memoize :name }
   end
