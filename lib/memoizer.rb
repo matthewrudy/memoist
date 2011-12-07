@@ -1,7 +1,7 @@
 # require 'active_support/core_ext/kernel/singleton_class'
 require 'core_ext/singleton_class'
 
-module Memoizable
+module Memoizer
 
   def self.memoized_ivar_for(symbol)
     "@_memoized_#{symbol.to_s.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')}".to_sym
@@ -37,7 +37,7 @@ module Memoizable
             if method(m).arity == 0
               __send__($1)
             else
-              ivar = Memoizable.memoized_ivar_for($1)
+              ivar = Memoizer.memoized_ivar_for($1)
               instance_variable_set(ivar, {})
             end
           end
@@ -49,7 +49,7 @@ module Memoizable
       syms.each do |sym|
         (methods + private_methods + protected_methods).each do |m|
           if m.to_s =~ /^_unmemoized_(#{sym.to_s.gsub(/\?\Z/, '\?')})/
-            ivar = Memoizable.memoized_ivar_for($1)
+            ivar = Memoizer.memoized_ivar_for($1)
             instance_variable_get(ivar).clear if instance_variable_defined?(ivar)
           end
         end
@@ -60,7 +60,7 @@ module Memoizable
   def memoize(*symbols)
     symbols.each do |symbol|
       original_method = :"_unmemoized_#{symbol}"
-      memoized_ivar = Memoizable.memoized_ivar_for(symbol)
+      memoized_ivar = Memoizer.memoized_ivar_for(symbol)
 
       class_eval <<-EOS, __FILE__, __LINE__ + 1
         include InstanceMethods                                                  # include InstanceMethods

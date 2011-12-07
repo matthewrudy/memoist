@@ -1,9 +1,9 @@
 require 'test_helper'
-require 'memoizable'
+require 'memoizer'
 
-class MemoizableTest < Test::Unit::TestCase
+class MemoizerTest < Test::Unit::TestCase
   class Person
-    extend Memoizable
+    extend Memoizer
 
     attr_reader :name_calls, :age_calls, :is_developer_calls, :name_query_calls
 
@@ -66,7 +66,7 @@ class MemoizableTest < Test::Unit::TestCase
   end
 
   module Rates
-    extend Memoizable
+    extend Memoizer
 
     attr_reader :sales_tax_calls
     def sales_tax(price)
@@ -78,7 +78,7 @@ class MemoizableTest < Test::Unit::TestCase
   end
 
   class Calculator
-    extend Memoizable
+    extend Memoizer
     include Rates
 
     attr_reader :fib_calls
@@ -216,7 +216,7 @@ class MemoizableTest < Test::Unit::TestCase
 
   def test_object_memoization
     [Company.new, Company.new, Company.new].each do |company|
-      company.extend Memoizable
+      company.extend Memoizer
       company.memoize :name
 
       assert_equal "37signals", company.name
@@ -250,11 +250,11 @@ class MemoizableTest < Test::Unit::TestCase
   def test_double_memoization
     assert_raise(RuntimeError) { Person.memoize :name }
     person = Person.new
-    person.extend Memoizable
+    person.extend Memoizer
     assert_raise(RuntimeError) { person.memoize :name }
 
     company = Company.new
-    company.extend Memoizable
+    company.extend Memoizer
     company.memoize :name
     assert_raise(RuntimeError) { company.memoize :name }
   end
