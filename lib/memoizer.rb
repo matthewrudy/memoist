@@ -1,5 +1,5 @@
 # require 'active_support/core_ext/kernel/singleton_class'
-require 'core_ext/singleton_class'
+require 'memoizer/core_ext/singleton_class'
 
 module Memoizer
 
