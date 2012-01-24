@@ -1,7 +1,7 @@
-Memoizer
+Memoist
 =============
 
-Memoizer is an extraction of ActiveSupport::Memoizable.
+Memoist is an extraction of ActiveSupport::Memoizable.
 
 Since June 2011 ActiveSupport::Memoizable has been deprecated.
 But I love it,
@@ -10,11 +10,11 @@ and so I plan to keep it alive.
 Usage
 -----
 
-Just extend with the Memoizer module
+Just extend with the Memoist module
 
-    require 'memoizer'
+    require 'memoist'
     class Person
-      extend Memoizer
+      extend Memoist
       
       def social_security
         decrypt_social_security

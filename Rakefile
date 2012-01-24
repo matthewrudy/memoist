@@ -1,7 +1,6 @@
 # encoding: utf-8
 require "rubygems"
 require "rubygems/package_task"
-require "rdoc/task"
 
 require "rake/testtask"
 Rake::TestTask.new do |t|
@@ -36,12 +35,12 @@ AUTHORS = [
 spec = Gem::Specification.new do |s|
 
   # Change these as appropriate
-  s.name              = "memoizer"
+  s.name              = "memoist"
   s.version           = "0.1.0"
   s.summary           = "memoize methods invocation"
   s.authors           = AUTHORS.map{ |name, email| name }
   s.email             = AUTHORS.map{ |name, email| email }
-  s.homepage          = "https://github.com/matthewrudy/memoizable"
+  s.homepage          = "https://github.com/matthewrudy/memoist"
 
   s.has_rdoc          = true
   # You should probably have a README of some kind. Change the filename
@@ -66,7 +65,7 @@ end
 # be automatically building a gem for this project. If you're not
 # using GitHub, edit as appropriate.
 #
-# To publish your gem online, install the 'gemcutter' gem; Read more 
+# To publish your gem online, install the 'gemcutter' gem; Read more
 # about that here: http://gemcutter.org/pages/gem_docs
 Gem::PackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
@@ -85,13 +84,19 @@ end
 #  - maybe others?
 task :package => :gemspec
 
-# Generate documentation
-RDoc::Task.new do |rd|
-  rd.rdoc_files.include("lib/**/*.rb")
-  rd.rdoc_dir = "rdoc"
-end
+begin
+  require "rdoc/task"
 
-desc 'Clear out RDoc and generated packages'
-task :clean => [:clobber_rdoc, :clobber_package] do
-  rm "#{spec.name}.gemspec"
+  # Generate documentation
+  RDoc::Task.new do |rd|
+    rd.rdoc_files.include("lib/**/*.rb")
+    rd.rdoc_dir = "rdoc"
+  end
+
+  desc 'Clear out RDoc and generated packages'
+  task :clean => [:clobber_rdoc, :clobber_package] do
+    rm "#{spec.name}.gemspec"
+  end
+rescue LoadError => e
+  warn e.message
 end
