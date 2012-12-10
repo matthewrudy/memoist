@@ -51,4 +51,9 @@ Everyone who contributed to it in the rails repository.
 * jeem
 * Jay Pignata
 * Damien Mathieu
-* José Valim                             
+* José Valim
+
+License
+=======
+
+Released under the [MIT License](http://www.opensource.org/licenses/MIT), just as Ruby on Rails is.
