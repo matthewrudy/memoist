@@ -46,6 +46,23 @@ You can even memoize method that takes arguments.
 
 This will only be calculated once per value of income.
 
+Reload
+------
+
+Each memoized function comes with a way to flush the existing value.
+
+    person.social_security       # returns the memoized value
+    person.social_security(true) # bypasses the memoized value and rememoizes it
+    
+This also works with a memoized method with arguments
+
+    person.taxes_due(100_000)       # returns the memoized value
+    person.taxes_due(100_000, true) # bypasses the memoized value and rememoizes it
+
+If you want to flush the entire memoization cache for an object
+
+    person.flush_cache
+
 Authors
 ===========
 
