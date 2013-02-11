@@ -24,7 +24,17 @@ Just extend with the Memoist module
 
 And person.social_security will only be calculated once.
 
-You can even do it with a method that takes arguments.
+Every memoized function (which initially was not accepting any arguments) has a ```(reload)``` 
+argument you can pass in to bypass and reset the memoization:
+
+    def some_method
+      Time.now
+    end
+    memoize :some_method
+
+Calling ```some_method``` will be memoized, but calling ```some_method(true)``` will rememoize each time.
+
+You can even memoize method that takes arguments.
 
 
     class Person
