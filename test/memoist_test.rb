@@ -5,10 +5,11 @@ class MemoistTest < Test::Unit::TestCase
   class Person
     extend Memoist
 
-    attr_reader :name_calls, :age_calls, :is_developer_calls, :name_query_calls
+    attr_reader :name_calls, :student_name_calls, :age_calls, :is_developer_calls, :name_query_calls
 
     def initialize
       @name_calls = 0
+      @student_name_calls = 0
       @age_calls = 0
       @is_developer_calls = 0
       @name_query_calls = 0
@@ -51,6 +52,14 @@ class MemoistTest < Test::Unit::TestCase
       "Yes"
     end
     memoize :is_developer?
+  end
+
+  class Student < Person
+    def name
+      @student_name_calls += 1
+      "Student #{super}"
+    end
+    memoize :name, :identifier => :student
   end
 
   class Company
@@ -257,6 +266,18 @@ class MemoistTest < Test::Unit::TestCase
     company.extend Memoist
     company.memoize :name
     assert_raise(RuntimeError) { company.memoize :name }
+  end
+
+  def test_double_memoization_with_identifier
+    assert_nothing_raised { Person.memoize :name, :identifier => :again }
+  end
+
+  def test_memoization_with_a_subclass
+    student = Student.new
+    student.name
+    student.name
+    assert_equal 1, student.student_name_calls
+    assert_equal 1, student.name_calls
   end
 
   def test_protected_method_memoization
