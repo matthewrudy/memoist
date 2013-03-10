@@ -22,6 +22,14 @@ module Memoist
     string.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')
   end
 
+  def self.memoist_eval(klass, *args, &block)
+    if klass.respond_to?(:class_eval)
+      klass.class_eval(*args, &block)
+    else
+      klass.singleton_class.class_eval(*args, &block)
+    end
+  end
+
   module InstanceMethods
     def self.included(base)
       base.class_eval do
@@ -91,7 +99,7 @@ module Memoist
       unmemoized_method = Memoist.unmemoized_method_for(method_name, identifier)
       memoized_ivar = Memoist.memoized_ivar_for(method_name, identifier)
 
-      class_eval do
+      Memoist.memoist_eval(self) do
         include InstanceMethods
 
         if method_defined?(unmemoized_method)
