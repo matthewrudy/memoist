@@ -2,26 +2,58 @@ require 'test_helper'
 require 'memoist'
 
 class MemoistTest < Test::Unit::TestCase
+
+  class CallCounter
+
+    def initialize
+      @calls = {}
+    end
+
+    def call(method_name)
+      @calls[method_name] ||= 0
+      @calls[method_name] += 1
+    end
+
+    def count(method_name)
+      @calls[method_name] ||= 0
+    end
+
+  end
+
   class Person
     extend Memoist
 
-    attr_reader :name_calls, :student_name_calls, :age_calls, :is_developer_calls, :name_query_calls
-
     def initialize
-      @name_calls = 0
-      @student_name_calls = 0
-      @age_calls = 0
-      @is_developer_calls = 0
-      @name_query_calls = 0
+      @counter = CallCounter.new
+    end
+
+    def name_calls
+      @counter.count(:name)
+    end
+
+    def student_name_calls
+      @counter.count(:student_name)
+    end
+
+    def name_query_calls
+      @counter.count(:name?)
+    end
+
+    def is_developer_calls
+      @counter.count(:is_developer?)
+    end
+
+    def age_calls
+      @counter.count(:age)
     end
 
     def name
-      @name_calls += 1
+      @counter.call(:name)
       "Josh"
     end
 
     def name?
-      @name_query_calls += 1
+      @counter.call(:name?)
       true
     end
     memoize :name?
@@ -32,7 +64,7 @@ class MemoistTest < Test::Unit::TestCase
     memoize :update
 
     def age
-      @age_calls += 1
+      @counter.call(:age)
       nil
     end
 
@@ -48,7 +80,7 @@ class MemoistTest < Test::Unit::TestCase
     private
 
     def is_developer?
-      @is_developer_calls += 1
+      @counter.call(:is_developer?)
       "Yes"
     end
     memoize :is_developer?
@@ -56,7 +88,7 @@ class MemoistTest < Test::Unit::TestCase
 
   class Student < Person
     def name
-      @student_name_calls += 1
+      @counter.call(:student_name)
       "Student #{super}"
     end
     memoize :name, :identifier => :student
