@@ -36,7 +36,7 @@ spec = Gem::Specification.new do |s|
 
   # Change these as appropriate
   s.name              = "memoist"
-  s.version           = "0.2.0"
+  s.version           = "0.9.0"
   s.summary           = "memoize methods invocation"
   s.authors           = AUTHORS.map{ |name, email| name }
   s.email             = AUTHORS.map{ |name, email| email }
