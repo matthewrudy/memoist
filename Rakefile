@@ -36,11 +36,12 @@ spec = Gem::Specification.new do |s|
 
   # Change these as appropriate
   s.name              = "memoist"
-  s.version           = "0.9.0"
+  s.version           = "0.9.1"
   s.summary           = "memoize methods invocation"
   s.authors           = AUTHORS.map{ |name, email| name }
   s.email             = AUTHORS.map{ |name, email| email }
   s.homepage          = "https://github.com/matthewrudy/memoist"
+  s.license           = "MIT"
 
   s.has_rdoc          = true
   # You should probably have a README of some kind. Change the filename
