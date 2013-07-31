@@ -17,7 +17,7 @@ Just extend with the Memoist module
     require 'memoist'
     class Person
       extend Memoist
-      
+
       def social_security
         decrypt_social_security
       end
@@ -26,7 +26,7 @@ Just extend with the Memoist module
 
 And person.social_security will only be calculated once.
 
-Every memoized function (which initially was not accepting any arguments) has a ```(reload)``` 
+Every memoized function (which initially was not accepting any arguments) has a ```(reload)```
 argument you can pass in to bypass and reset the memoization:
 
     def some_method
@@ -48,6 +48,21 @@ You can even memoize method that takes arguments.
 
 This will only be calculated once per value of income.
 
+You can also memoize class methods.
+
+    class Person
+
+      class << self
+        extend Memoist
+        def with_overdue_taxes
+          # ...
+        end
+        memoize :with_overdue_taxes
+      end
+
+    end
+
+
 Reload
 ------
 
@@ -55,7 +70,7 @@ Each memoized function comes with a way to flush the existing value.
 
     person.social_security       # returns the memoized value
     person.social_security(true) # bypasses the memoized value and rememoizes it
-    
+
 This also works with a memoized method with arguments
 
     person.taxes_due(100_000)       # returns the memoized value
