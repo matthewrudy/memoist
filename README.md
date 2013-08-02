@@ -96,6 +96,7 @@ Everyone who contributed to it in the rails repository.
 * Jay Pignata
 * Damien Mathieu
 * José Valim
+* Matthew Rudy Jacobs
 
 License
 =======

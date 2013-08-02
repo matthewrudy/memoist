@@ -30,6 +30,7 @@ AUTHORS = [
   ["Jay Pignata",               "john.pignata@gmail.com"],
   ["Damien Mathieu",            "42@dmathieu.com"],
   ["José Valim",                "jose.valim@gmail.com"],
+  ["Matthew Rudy Jacobs",       "matthewrudyjacobs@gmail.com"],
 ]
 
 spec = Gem::Specification.new do |s|
