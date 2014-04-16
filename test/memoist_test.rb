@@ -289,15 +289,15 @@ class MemoistTest < Test::Unit::TestCase
   end
 
   def test_double_memoization
-    assert_raise(RuntimeError) { Person.memoize :name }
+    assert_raise(Memoist::AlreadyMemoizedError) { Person.memoize :name }
     person = Person.new
     person.extend Memoist
-    assert_raise(RuntimeError) { person.memoize :name }
+    assert_raise(Memoist::AlreadyMemoizedError) { person.memoize :name }
 
     company = Company.new
     company.extend Memoist
     company.memoize :name
-    assert_raise(RuntimeError) { company.memoize :name }
+    assert_raise(Memoist::AlreadyMemoizedError) { company.memoize :name }
   end
 
   def test_double_memoization_with_identifier
