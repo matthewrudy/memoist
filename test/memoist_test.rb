@@ -290,9 +290,6 @@ class MemoistTest < Test::Unit::TestCase
 
   def test_double_memoization
     assert_raise(RuntimeError) { Person.memoize :name }
-    person = Person.new
-    person.extend Memoist
-    assert_raise(RuntimeError) { person.memoize :name }
 
     company = Company.new
     company.extend Memoist
@@ -302,6 +299,49 @@ class MemoistTest < Test::Unit::TestCase
 
   def test_double_memoization_with_identifier
     assert_nothing_raised { Person.memoize :name, :identifier => :again }
+  end
+
+  # Ensure that files can be reloaded (as you might do in irb)
+  def test_double_load
+    # If Memoist.extended isn't doing its job we'll get an "already memoized" error
+    load 'dummy_class.rb'
+    load 'dummy_class.rb'
+
+    dummy = Dummy.new
+    dummy.increment
+    assert_equal 1, dummy.increment
+  end
+
+  # Ensure that subclasses that also extend memoist don't mess up the original
+  # class's memoized methods. 
+  def test_double_extend_subclass
+    load 'dummy_class.rb'
+    load 'dummy_subclass.rb'
+
+    dummy = Dummy.new
+    dummy.increment
+    assert_equal 1, dummy.increment
+
+    sub_dummy = DummySubclass.new
+    sub_dummy.increment
+    assert_equal 1, sub_dummy.increment
+    sub_dummy.sub_increment
+    assert_equal 1, sub_dummy.sub_increment
+  end
+
+  # Ensure that modules that also extend memoist don't mess up the original
+  # class's memoized methods. 
+  def test_double_extend_module
+    load 'dummy_class.rb'
+    load 'dummy_module.rb'
+
+    Dummy.class_eval { include DummyModule }
+
+    dummy = Dummy.new
+    dummy.increment
+    assert_equal 1, dummy.increment
+    dummy.module_increment
+    assert_equal 1, dummy.module_increment
   end
 
   def test_memoization_with_a_subclass

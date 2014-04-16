@@ -2,6 +2,30 @@ require 'memoist/core_ext/singleton_class'
 
 module Memoist
 
+  # In case a module re-extends Memoist, undo the previous extension.
+  # This is mainly useful in irb when modules get auto-reloaded, causing them
+  # to redefine themselves on top of the old definition.
+  # Without this we'd get "already memoized" errors.
+  def self.extended(extending_mod)
+    # Execute in the context of the module that is extending Memoist
+    Memoist.memoist_eval(extending_mod) do
+      # Don't include superclass methods or else we'd unmemoize them and never
+      # re-memoize.
+      methods = instance_methods(false) + private_instance_methods(false)
+      prefix = Memoist.unmemoized_prefix + "_"
+
+      methods.each do |method_name|
+        # If we already have an unmemoized method, then rename it back to its
+        # its original name and remove the unmemoized version.
+        # This is basically undoing the previous memoization.
+        if method_name.to_s.start_with?(prefix)
+          alias_method method_name[prefix.length..-1], method_name
+          undef_method method_name
+        end
+      end
+    end
+  end
+
   def self.memoized_ivar_for(method_name, identifier=nil)
     ["@#{memoized_prefix(identifier)}", escape_punctuation(method_name.to_s)].join("_")
   end
