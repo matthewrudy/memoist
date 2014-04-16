@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.date = "2013-07-19"
   s.email = ["josh@joshpeek.com", "tarmo@itech.ee", "jeremy@bitsweat.net", "libc@mac.com", "fxn@hashref.com", "niels@herimedia.co", "wycats@gmail.com", "jeem@hughesorama.com", "john.pignata@gmail.com", "42@dmathieu.com", "jose.valim@gmail.com"]
   s.extra_rdoc_files = ["README.md"]
-  s.files = ["README.md", "test/benchmark/memoist_benchmark.rb", "test/memoist_test.rb", "test/test_helper.rb", "lib/memoist/core_ext/singleton_class.rb", "lib/memoist.rb"]
+  s.files = ["README.md", "test/memoist_test.rb", "test/test_helper.rb", "lib/memoist/core_ext/singleton_class.rb", "lib/memoist.rb"]
   s.homepage = "https://github.com/matthewrudy/memoist"
   s.licenses = ["MIT"]
   s.rdoc_options = ["--main", "README.md"]
