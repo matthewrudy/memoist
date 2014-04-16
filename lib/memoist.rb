@@ -195,5 +195,5 @@ module Memoist
     end
   end
 
-  class AlreadyMemoizedError < StandardError; end
+  class AlreadyMemoizedError < RuntimeError; end
 end
