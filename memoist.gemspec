@@ -1,19 +1,37 @@
-# -*- encoding: utf-8 -*-
+# coding: utf-8
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'memoist/version'
 
-Gem::Specification.new do |s|
-  s.name = "memoist"
-  s.version = "0.9.1"
+AUTHORS = [
+  ["Joshua Peek",               "josh@joshpeek.com"],
+  ["Tarmo Tänav",               "tarmo@itech.ee"],
+  ["Jeremy Kemper",             "jeremy@bitsweat.net"],
+  ["Eugene Pimenov",            "libc@mac.com"],
+  ["Xavier Noria",              "fxn@hashref.com"],
+  ["Niels Ganser",              "niels@herimedia.co"],
+  ["Carl Lerche & Yehuda Katz", "wycats@gmail.com"],
+  ["jeem",                      "jeem@hughesorama.com"],
+  ["Jay Pignata",               "john.pignata@gmail.com"],
+  ["Damien Mathieu",            "42@dmathieu.com"],
+  ["José Valim",                "jose.valim@gmail.com"],
+  ["Matthew Rudy Jacobs",       "matthewrudyjacobs@gmail.com"],
+]
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Joshua Peek", "Tarmo T\u{e4}nav", "Jeremy Kemper", "Eugene Pimenov", "Xavier Noria", "Niels Ganser", "Carl Lerche & Yehuda Katz", "jeem", "Jay Pignata", "Damien Mathieu", "Jos\u{e9} Valim"]
-  s.date = "2013-07-19"
-  s.email = ["josh@joshpeek.com", "tarmo@itech.ee", "jeremy@bitsweat.net", "libc@mac.com", "fxn@hashref.com", "niels@herimedia.co", "wycats@gmail.com", "jeem@hughesorama.com", "john.pignata@gmail.com", "42@dmathieu.com", "jose.valim@gmail.com"]
-  s.extra_rdoc_files = ["README.md"]
-  s.files = ["README.md", "test/memoist_test.rb", "test/test_helper.rb", "lib/memoist/core_ext/singleton_class.rb", "lib/memoist.rb"]
-  s.homepage = "https://github.com/matthewrudy/memoist"
-  s.licenses = ["MIT"]
-  s.rdoc_options = ["--main", "README.md"]
-  s.require_paths = ["lib"]
-  s.rubygems_version = "2.0.3"
-  s.summary = "memoize methods invocation"
+Gem::Specification.new do |spec|
+  spec.name          = "memoist"
+  spec.version       = Memoist::VERSION
+  spec.authors       = AUTHORS.map{ |name, email| name }
+  spec.email         = AUTHORS.map{ |name, email| email }
+  spec.summary       = %q{memoize methods invocation}
+  spec.homepage      = "https://github.com/matthewrudy/memoist"
+  spec.license       = "MIT"
+
+  spec.files         = `git ls-files -z`.split("\x0")
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.require_paths = ["lib"]
+
+  spec.add_development_dependency "bundler", "~> 1.5"
+  spec.add_development_dependency "rake"
 end
