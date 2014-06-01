@@ -202,9 +202,10 @@ class MemoistTest < Test::Unit::TestCase
   def test_flush_cache
     assert_equal 1, @calculator.counter
 
-    assert @calculator.instance_variable_get(:@_memoized_counter).any?
+    assert @calculator.instance_variable_get(:@_memoized_counter)
     @calculator.flush_cache(:counter)
-    assert @calculator.instance_variable_get(:@_memoized_counter).empty?
+    assert_nil @calculator.instance_variable_get(:@_memoized_counter)
+    assert !@calculator.instance_variable_defined?(:@_memoized_counter)
 
     assert_equal 2, @calculator.counter
   end
@@ -212,9 +213,10 @@ class MemoistTest < Test::Unit::TestCase
   def test_unmemoize_all
     assert_equal 1, @calculator.counter
 
-    assert @calculator.instance_variable_get(:@_memoized_counter).any?
+    assert @calculator.instance_variable_get(:@_memoized_counter)
     @calculator.unmemoize_all
-    assert @calculator.instance_variable_get(:@_memoized_counter).empty?
+    assert_nil @calculator.instance_variable_get(:@_memoized_counter)
+    assert !@calculator.instance_variable_defined?(:@_memoized_counter)
 
     assert_equal 2, @calculator.counter
   end
