@@ -105,7 +105,7 @@ module Memoist
           # define a method like this;
 
           # def mime_type(reload=true)
-          #   skip_cache = reload || !defined?("@abc")
+          #   skip_cache = reload || !instance_variable_defined?("@_memoized_mime_type")
           #   set_cache = skip_cache && !frozen?
           #
           #   if skip_cache
@@ -123,7 +123,7 @@ module Memoist
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
             def #{method_name}(reload = false)
-              skip_cache = reload || !defined?(#{memoized_ivar})
+              skip_cache = reload || !instance_variable_defined?("#{memoized_ivar}")
               set_cache = skip_cache && !frozen?
 
               if skip_cache
@@ -167,7 +167,7 @@ module Memoist
             def #{method_name}(*args)
               reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
 
-              skip_cache = reload || !(defined?(#{memoized_ivar}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
+              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
               set_cache = skip_cache && !frozen?
 
               if skip_cache
