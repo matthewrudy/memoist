@@ -78,7 +78,7 @@ module Memoist
 
       method_names.each do |method_name|
         ivar = Memoist.memoized_ivar_for(method_name)
-        instance_variable_get(ivar).clear if instance_variable_defined?(ivar)
+        remove_instance_variable(ivar) if instance_variable_defined?(ivar)
       end
     end
   end
@@ -105,17 +105,17 @@ module Memoist
           # define a method like this;
 
           # def mime_type(reload=true)
-          #   skip_cache = reload || !memoized?(:abc)
+          #   skip_cache = reload || !instance_variable_defined?("@_memoized_mime_type")
           #   set_cache = skip_cache && !frozen?
           #
           #   if skip_cache
           #     value = _unmemoized_mime_type
           #   else
-          #     value = @_memoized_mime_type[0]
+          #     value = @_memoized_mime_type
           #   end
           #
           #   if set_cache
-          #     @_memoized_mime_type = [value]
+          #     @_memoized_mime_type = value
           #   end
           #
           #   value
@@ -123,17 +123,17 @@ module Memoist
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
             def #{method_name}(reload = false)
-              skip_cache = reload || !defined?(#{memoized_ivar}) || #{memoized_ivar}.empty?
+              skip_cache = reload || !instance_variable_defined?("#{memoized_ivar}")
               set_cache = skip_cache && !frozen?
 
               if skip_cache
                 value = #{unmemoized_method}
               else
-                value = #{memoized_ivar}[0]
+                value = #{memoized_ivar}
               end
 
               if set_cache
-                #{memoized_ivar} = [value]
+                #{memoized_ivar} = value
               end
 
               value
@@ -167,7 +167,7 @@ module Memoist
             def #{method_name}(*args)
               reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
 
-              skip_cache = reload || !(defined?(#{memoized_ivar}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
+              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
               set_cache = skip_cache && !frozen?
 
               if skip_cache
