@@ -331,4 +331,11 @@ class MemoistTest < Test::Unit::TestCase
     assert_equal 1, person.is_developer_calls
   end
 
+  def test_memoization_with_custom_value
+    person = Person.new
+    person.set_cache(:is_developer?, "No")
+    assert_equal "No", person.send(:is_developer?)
+    assert_equal 0, person.is_developer_calls
+  end
+
 end

@@ -81,6 +81,11 @@ module Memoist
         remove_instance_variable(ivar) if instance_variable_defined?(ivar)
       end
     end
+
+    def set_cache(method_name, value)
+      memoized_ivar = Memoist.memoized_ivar_for(method_name)
+      instance_variable_set(memoized_ivar, value)
+    end
   end
 
   def memoize(*method_names)
