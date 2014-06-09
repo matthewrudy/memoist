@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'memoist'
 
-class MemoistTest < Test::Unit::TestCase
+class MemoistTest < Minitest::Unit::TestCase
 
   class CallCounter
 
@@ -170,10 +170,8 @@ class MemoistTest < Test::Unit::TestCase
   def test_memoization_with_punctuation
     assert_equal true, @person.name?
 
-    assert_nothing_raised(NameError) do
-      @person.memoize_all
-      @person.unmemoize_all
-    end
+    @person.memoize_all
+    @person.unmemoize_all
   end
 
   def test_memoization_flush_with_punctuation
@@ -291,19 +289,19 @@ class MemoistTest < Test::Unit::TestCase
   end
 
   def test_double_memoization
-    assert_raise(Memoist::AlreadyMemoizedError) { Person.memoize :name }
+    assert_raises(Memoist::AlreadyMemoizedError) { Person.memoize :name }
     person = Person.new
     person.extend Memoist
-    assert_raise(Memoist::AlreadyMemoizedError) { person.memoize :name }
+    assert_raises(Memoist::AlreadyMemoizedError) { person.memoize :name }
 
     company = Company.new
     company.extend Memoist
     company.memoize :name
-    assert_raise(Memoist::AlreadyMemoizedError) { company.memoize :name }
+    assert_raises(Memoist::AlreadyMemoizedError) { company.memoize :name }
   end
 
   def test_double_memoization_with_identifier
-    assert_nothing_raised { Person.memoize :name, :identifier => :again }
+    Person.memoize :name, :identifier => :again
   end
 
   def test_memoization_with_a_subclass
@@ -317,14 +315,14 @@ class MemoistTest < Test::Unit::TestCase
   def test_protected_method_memoization
     person = Person.new
 
-    assert_raise(NoMethodError) { person.memoize_protected_test }
+    assert_raises(NoMethodError) { person.memoize_protected_test }
     assert_equal "protected", person.send(:memoize_protected_test)
   end
 
   def test_private_method_memoization
     person = Person.new
 
-    assert_raise(NoMethodError) { person.is_developer? }
+    assert_raises(NoMethodError) { person.is_developer? }
     assert_equal "Yes", person.send(:is_developer?)
     assert_equal 1, person.is_developer_calls
     assert_equal "Yes", person.send(:is_developer?)
