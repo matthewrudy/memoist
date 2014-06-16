@@ -142,9 +142,10 @@ class MemoistTest < Minitest::Unit::TestCase
     extend Memoist
     include Rates
 
-    attr_reader :fib_calls
+    attr_reader :fib_calls, :divide_by_zero_calls
     def initialize
       @fib_calls = 0
+      @divide_by_zero_calls = 0
     end
 
     def fib(n)
@@ -172,6 +173,12 @@ class MemoistTest < Minitest::Unit::TestCase
       @count += 1
     end
     memoize :counter
+
+    def divide_by_zero(x)
+      @divide_by_zero_calls += 1
+      x / 0
+    end
+    memoize :divide_by_zero
   end
 
   def setup
@@ -378,6 +385,40 @@ class MemoistTest < Minitest::Unit::TestCase
     assert_equal 1, person.is_developer_calls
     assert_equal "Yes", person.send(:is_developer?)
     assert_equal 1, person.is_developer_calls
+  end
+
+  def test_memoization_with_an_error
+    assert_equal 0, @calculator.divide_by_zero_calls
+
+    error123 = assert_raises(ZeroDivisionError) do
+      @calculator.divide_by_zero 123
+    end
+    assert_equal 1, @calculator.divide_by_zero_calls
+
+    e = assert_raises(ZeroDivisionError) do
+      @calculator.divide_by_zero 123
+    end
+    assert_same error123, e
+    assert_equal 1, @calculator.divide_by_zero_calls
+
+    error456 = assert_raises(ZeroDivisionError) do
+      @calculator.divide_by_zero 456
+    end
+    assert_equal 2, @calculator.divide_by_zero_calls
+
+    e = assert_raises(ZeroDivisionError) do
+      @calculator.divide_by_zero 456
+    end
+    assert_same error456, e
+    assert_equal 2, @calculator.divide_by_zero_calls
+
+    refute_same error123, error456
+
+    e = assert_raises(ZeroDivisionError) do
+      @calculator.divide_by_zero 456, :reload
+    end
+    refute_same error456, e
+    assert_equal 3, @calculator.divide_by_zero_calls
   end
 
 end
