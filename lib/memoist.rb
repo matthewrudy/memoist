@@ -193,6 +193,8 @@ module Memoist
         end
       end
     end
+    # return a chainable method_name symbol if we can
+    method_names.length == 1 ? method_names.first : method_names
   end
 
   class AlreadyMemoizedError < RuntimeError; end
