@@ -312,6 +312,15 @@ class MemoistTest < Minitest::Unit::TestCase
     assert_equal 1, student.name_calls
   end
 
+  def test_memoization_is_chainable
+    klass = Class.new do
+      def foo; "bar"; end
+    end
+    klass.extend Memoist
+    chainable = klass.memoize :foo
+    assert_equal :foo, chainable
+  end
+
   def test_protected_method_memoization
     person = Person.new
 
