@@ -70,6 +70,26 @@ class MemoistTest < Minitest::Unit::TestCase
 
     memoize :name, :age
 
+    def sleep(hours = 8)
+      @counter.call(:sleep)
+      hours
+    end
+    memoize :sleep
+
+    def sleep_calls
+      @counter.count(:sleep)
+    end
+
+    def update_attributes(options = {})
+      @counter.call(:update_attributes)
+      true
+    end
+    memoize :update_attributes
+
+    def update_attributes_calls
+      @counter.count(:update_attributes)
+    end
+
     protected
 
     def memoize_protected_test
@@ -165,6 +185,28 @@ class MemoistTest < Minitest::Unit::TestCase
 
     3.times { assert_equal "Josh", @person.name }
     assert_equal 1, @person.name_calls
+  end
+
+  def test_memoize_with_optional_arguments
+    assert_equal 4, @person.sleep(4)
+    assert_equal 1, @person.sleep_calls
+
+    3.times { assert_equal 4, @person.sleep(4) }
+    assert_equal 1, @person.sleep_calls
+
+    3.times { assert_equal 4, @person.sleep(4, :reload) }
+    assert_equal 4, @person.sleep_calls
+  end
+
+  def test_memoize_with_options_hash
+    assert_equal true, @person.update_attributes(:age => 21, :name => 'James')
+    assert_equal 1, @person.update_attributes_calls
+
+    3.times { assert_equal true, @person.update_attributes(:age => 21, :name => 'James') }
+    assert_equal 1, @person.update_attributes_calls
+
+    3.times { assert_equal true, @person.update_attributes({:age => 21, :name => 'James'}, :reload) }
+    assert_equal 4, @person.update_attributes_calls
   end
 
   def test_memoization_with_punctuation
