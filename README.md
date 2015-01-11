@@ -62,6 +62,25 @@ You can also memoize class methods.
 
     end
 
+When a sub-class overrides one of its parent's methods and you need to memoize both. 
+Then you can use the `:identifier` parameter in order to help _Memoist_ distinguish between the two.
+
+    class Clock
+      extend Memoist
+      def now
+         "The time now is #{Time.now.hour} o'clock and #{Time.now.min} minutes"
+      end
+      memoize :now
+    end
+
+    class AccurateClock < Clock
+      extend Memoist
+      def now
+        "#{super} and #{Time.now.sec} seconds"
+      end
+      memoize :now, :identifier => :accurate_clock
+    end
+
 
 Reload
 ------
