@@ -97,6 +97,7 @@ module Memoist
 
         if method_defined?(unmemoized_method)
           warn "Already memoized #{method_name}"
+          return
         end
         alias_method unmemoized_method, method_name
 
