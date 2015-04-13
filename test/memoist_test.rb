@@ -330,18 +330,6 @@ class MemoistTest < Minitest::Unit::TestCase
     assert_equal 2, company.sales_tax_calls
   end
 
-  def test_double_memoization
-    assert_raises(Memoist::AlreadyMemoizedError) { Person.memoize :name }
-    person = Person.new
-    person.extend Memoist
-    assert_raises(Memoist::AlreadyMemoizedError) { person.memoize :name }
-
-    company = Company.new
-    company.extend Memoist
-    company.memoize :name
-    assert_raises(Memoist::AlreadyMemoizedError) { company.memoize :name }
-  end
-
   def test_double_memoization_with_identifier
     Person.memoize :name, :identifier => :again
   end

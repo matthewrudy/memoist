@@ -96,7 +96,8 @@ module Memoist
         include InstanceMethods
 
         if method_defined?(unmemoized_method)
-          raise AlreadyMemoizedError.new("Already memoized #{method_name}")
+          warn "Already memoized #{method_name}"
+          return
         end
         alias_method unmemoized_method, method_name
 
@@ -197,5 +198,4 @@ module Memoist
     method_names.length == 1 ? method_names.first : method_names
   end
 
-  class AlreadyMemoizedError < RuntimeError; end
 end
