@@ -96,106 +96,106 @@ module Memoist
         include InstanceMethods
 
         if method_defined?(unmemoized_method)
-          raise AlreadyMemoizedError.new("Already memoized #{method_name}")
-        end
-        alias_method unmemoized_method, method_name
-
-        if instance_method(method_name).arity == 0
-
-          # define a method like this;
-
-          # def mime_type(reload=true)
-          #   skip_cache = reload || !instance_variable_defined?("@_memoized_mime_type")
-          #   set_cache = skip_cache && !frozen?
-          #
-          #   if skip_cache
-          #     value = _unmemoized_mime_type
-          #   else
-          #     value = @_memoized_mime_type
-          #   end
-          #
-          #   if set_cache
-          #     @_memoized_mime_type = value
-          #   end
-          #
-          #   value
-          # end
-
-          module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(reload = false)
-              skip_cache = reload || !instance_variable_defined?("#{memoized_ivar}")
-              set_cache = skip_cache && !frozen?
-
-              if skip_cache
-                value = #{unmemoized_method}
-              else
-                value = #{memoized_ivar}
-              end
-
-              if set_cache
-                #{memoized_ivar} = value
-              end
-
-              value
-            end
-          EOS
+          warn "Already memoized #{method_name}"
         else
-
-          # define a method like this;
-
-          # def mime_type(*args)
-          #   reload = Memoist.extract_reload!(method(:_unmemoized_mime_type), args)
-          #
-          #   skip_cache = reload || !memoized_with_args?(:mime_type, args)
-          #   set_cache = skip_cache && !frozen
-          #
-          #   if skip_cache
-          #     value = _unmemoized_mime_type(*args)
-          #   else
-          #     value = @_memoized_mime_type[args]
-          #   end
-          #
-          #   if set_cache
-          #     @_memoized_mime_type ||= {}
-          #     @_memoized_mime_type[args] = value
-          #   end
-          #
-          #   value
-          # end
-
-          module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(*args)
-              reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
-
-              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
-              set_cache = skip_cache && !frozen?
-
-              if skip_cache
-                value = #{unmemoized_method}(*args)
-              else
-                value = #{memoized_ivar}[args]
+          alias_method unmemoized_method, method_name
+          if instance_method(method_name).arity == 0
+  
+            # define a method like this;
+  
+            # def mime_type(reload=true)
+            #   skip_cache = reload || !instance_variable_defined?("@_memoized_mime_type")
+            #   set_cache = skip_cache && !frozen?
+            #
+            #   if skip_cache
+            #     value = _unmemoized_mime_type
+            #   else
+            #     value = @_memoized_mime_type
+            #   end
+            #
+            #   if set_cache
+            #     @_memoized_mime_type = value
+            #   end
+            #
+            #   value
+            # end
+  
+            module_eval <<-EOS, __FILE__, __LINE__ + 1
+              def #{method_name}(reload = false)
+                skip_cache = reload || !instance_variable_defined?("#{memoized_ivar}")
+                set_cache = skip_cache && !frozen?
+  
+                if skip_cache
+                  value = #{unmemoized_method}
+                else
+                  value = #{memoized_ivar}
+                end
+  
+                if set_cache
+                  #{memoized_ivar} = value
+                end
+  
+                value
               end
-
-              if set_cache
-                #{memoized_ivar} ||= {}
-                #{memoized_ivar}[args] = value
+            EOS
+          else
+  
+            # define a method like this;
+  
+            # def mime_type(*args)
+            #   reload = Memoist.extract_reload!(method(:_unmemoized_mime_type), args)
+            #
+            #   skip_cache = reload || !memoized_with_args?(:mime_type, args)
+            #   set_cache = skip_cache && !frozen
+            #
+            #   if skip_cache
+            #     value = _unmemoized_mime_type(*args)
+            #   else
+            #     value = @_memoized_mime_type[args]
+            #   end
+            #
+            #   if set_cache
+            #     @_memoized_mime_type ||= {}
+            #     @_memoized_mime_type[args] = value
+            #   end
+            #
+            #   value
+            # end
+  
+            module_eval <<-EOS, __FILE__, __LINE__ + 1
+              def #{method_name}(*args)
+                reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
+  
+                skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
+                set_cache = skip_cache && !frozen?
+  
+                if skip_cache
+                  value = #{unmemoized_method}(*args)
+                else
+                  value = #{memoized_ivar}[args]
+                end
+  
+                if set_cache
+                  #{memoized_ivar} ||= {}
+                  #{memoized_ivar}[args] = value
+                end
+  
+                value
               end
-
-              value
-            end
-          EOS
+            EOS
+          end
+  
+          if private_method_defined?(unmemoized_method)
+            private method_name
+          elsif protected_method_defined?(unmemoized_method)
+            protected method_name
+          end
         end
 
-        if private_method_defined?(unmemoized_method)
-          private method_name
-        elsif protected_method_defined?(unmemoized_method)
-          protected method_name
-        end
       end
     end
     # return a chainable method_name symbol if we can
     method_names.length == 1 ? method_names.first : method_names
   end
 
-  class AlreadyMemoizedError < RuntimeError; end
 end
