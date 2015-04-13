@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'memoist'
 
-class MemoistTest < Minitest::Unit::TestCase
+class MemoistTest < Minitest::Test
 
   class CallCounter
 
