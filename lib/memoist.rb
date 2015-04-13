@@ -1,21 +1,35 @@
 require 'memoist/core_ext/singleton_class'
 
+# Memoist is a simple library for memoizing objects
+#
+#   class Person
+#     extend Memoist
+#
+#     def social_security
+#       decrypt_social_security
+#     end
+#     memoize :social_security
+#   end
+#
+#
 module Memoist
-
-  def self.memoized_ivar_for(method_name, identifier=nil)
-    ["@#{memoized_prefix(identifier)}", escape_punctuation(method_name.to_s)].join("_")
+  def self.memoized_ivar_for(method_name, identifier = nil)
+    [
+      "@#{memoized_prefix(identifier)}",
+      escape_punctuation(method_name.to_s)
+    ].join('_')
   end
 
-  def self.unmemoized_method_for(method_name, identifier=nil)
-    [unmemoized_prefix(identifier), method_name].join("_").to_sym
+  def self.unmemoized_method_for(method_name, identifier = nil)
+    [unmemoized_prefix(identifier), method_name].join('_').to_sym
   end
 
-  def self.memoized_prefix(identifier=nil)
-    ["_memoized", identifier].compact.join("_")
+  def self.memoized_prefix(identifier = nil)
+    ['_memoized', identifier].compact.join('_')
   end
 
-  def self.unmemoized_prefix(identifier=nil)
-    ["_unmemoized", identifier].compact.join("_")
+  def self.unmemoized_prefix(identifier = nil)
+    ['_unmemoized', identifier].compact.join('_')
   end
 
   def self.escape_punctuation(string)
@@ -31,10 +45,11 @@ module Memoist
   end
 
   def self.extract_reload!(method, args)
-    if args.length == method.arity.abs + 1 && (args.last == true || args.last == :reload)
-      reload = args.pop
+    return false if args.length != method.arity.abs + 1
+
+    if (args.last == true || args.last == :reload)
+      return args.pop
     end
-    reload
   end
 
   module InstanceMethods
@@ -48,11 +63,9 @@ module Memoist
 
     def prime_cache(*method_names)
       if method_names.empty?
-        prefix = Memoist.unmemoized_prefix+"_"
+        prefix = Memoist.unmemoized_prefix + '_'
         method_names = methods.collect do |method_name|
-          if method_name.to_s.start_with?(prefix)
-            method_name[prefix.length..-1]
-          end
+          method_name[prefix.length..-1] if method_name.to_s.start_with?(prefix)
         end.compact
       end
 
@@ -68,11 +81,9 @@ module Memoist
 
     def flush_cache(*method_names)
       if method_names.empty?
-        prefix = Memoist.unmemoized_prefix+"_"
+        prefix = Memoist.unmemoized_prefix + '_'
         method_names = (methods + private_methods + protected_methods).collect do |method_name|
-          if method_name.to_s.start_with?(prefix)
-            method_name[prefix.length..-1]
-          end
+          method_name[prefix.length..-1] if method_name.to_s.start_with?(prefix)
         end.compact
       end
 
@@ -84,9 +95,7 @@ module Memoist
   end
 
   def memoize(*method_names)
-    if method_names.last.is_a?(Hash)
-      identifier = method_names.pop[:identifier]
-    end
+    identifier = method_names.pop[:identifier] if method_names.last.is_a?(Hash)
 
     method_names.each do |method_name|
       unmemoized_method = Memoist.unmemoized_method_for(method_name, identifier)
@@ -197,5 +206,4 @@ module Memoist
     # return a chainable method_name symbol if we can
     method_names.length == 1 ? method_names.first : method_names
   end
-
 end

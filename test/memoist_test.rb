@@ -1,10 +1,11 @@
 require 'test_helper'
 require 'memoist'
 
-class MemoistTest < Minitest::Unit::TestCase
+# Test core Memoist features
+class MemoistTest < Minitest::Test
 
+  # Counter class used for spying
   class CallCounter
-
     def initialize
       @calls = {}
     end
@@ -17,9 +18,9 @@ class MemoistTest < Minitest::Unit::TestCase
     def count(method_name)
       @calls[method_name] ||= 0
     end
-
   end
 
+  # Example class for memoization
   class Person
     extend Memoist
 
@@ -39,8 +40,8 @@ class MemoistTest < Minitest::Unit::TestCase
       @counter.count(:name?)
     end
 
-    def is_developer_calls
-      @counter.count(:is_developer?)
+    def developer_calls
+      @counter.count(:developer?)
     end
 
     def age_calls
@@ -49,7 +50,7 @@ class MemoistTest < Minitest::Unit::TestCase
 
     def name
       @counter.call(:name)
-      "Josh"
+      'Josh'
     end
 
     def name?
@@ -58,8 +59,8 @@ class MemoistTest < Minitest::Unit::TestCase
     end
     memoize :name?
 
-    def update(name)
-      "Joshua"
+    def update(_name)
+      'Joshua'
     end
     memoize :update
 
@@ -80,7 +81,7 @@ class MemoistTest < Minitest::Unit::TestCase
       @counter.count(:sleep)
     end
 
-    def update_attributes(options = {})
+    def update_attributes(_options = {})
       @counter.call(:update_attributes)
       true
     end
@@ -99,11 +100,11 @@ class MemoistTest < Minitest::Unit::TestCase
 
     private
 
-    def is_developer?
-      @counter.call(:is_developer?)
-      "Yes"
+    def developer?
+      @counter.call(:developer?)
+      'Yes'
     end
-    memoize :is_developer?
+    memoize :developer?
   end
 
   class Student < Person
@@ -111,7 +112,7 @@ class MemoistTest < Minitest::Unit::TestCase
       @counter.call(:student_name)
       "Student #{super}"
     end
-    memoize :name, :identifier => :student
+    memoize :name, identifier: :student
   end
 
   class Company
@@ -122,7 +123,7 @@ class MemoistTest < Minitest::Unit::TestCase
 
     def name
       @name_calls += 1
-      "37signals"
+      '37signals'
     end
   end
 
@@ -180,10 +181,10 @@ class MemoistTest < Minitest::Unit::TestCase
   end
 
   def test_memoization
-    assert_equal "Josh", @person.name
+    assert_equal 'Josh', @person.name
     assert_equal 1, @person.name_calls
 
-    3.times { assert_equal "Josh", @person.name }
+    3.times { assert_equal 'Josh', @person.name }
     assert_equal 1, @person.name_calls
   end
 
@@ -199,13 +200,13 @@ class MemoistTest < Minitest::Unit::TestCase
   end
 
   def test_memoize_with_options_hash
-    assert_equal true, @person.update_attributes(:age => 21, :name => 'James')
+    assert_equal true, @person.update_attributes(age: 21, name: 'James')
     assert_equal 1, @person.update_attributes_calls
 
-    3.times { assert_equal true, @person.update_attributes(:age => 21, :name => 'James') }
+    3.times { assert_equal true, @person.update_attributes(age: 21, name: 'James') }
     assert_equal 1, @person.update_attributes_calls
 
-    3.times { assert_equal true, @person.update_attributes({:age => 21, :name => 'James'}, :reload) }
+    3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, :reload) }
     assert_equal 4, @person.update_attributes_calls
   end
 
@@ -274,8 +275,8 @@ class MemoistTest < Minitest::Unit::TestCase
 
   def test_memoized_is_not_affected_by_freeze
     @person.freeze
-    assert_equal "Josh", @person.name
-    assert_equal "Joshua", @person.update("Joshua")
+    assert_equal 'Josh', @person.name
+    assert_equal 'Joshua', @person.update('Joshua')
   end
 
   def test_memoization_with_args
@@ -302,9 +303,9 @@ class MemoistTest < Minitest::Unit::TestCase
       company.extend Memoist
       company.memoize :name
 
-      assert_equal "37signals", company.name
+      assert_equal '37signals', company.name
       assert_equal 1, company.name_calls
-      assert_equal "37signals", company.name
+      assert_equal '37signals', company.name
       assert_equal 1, company.name_calls
     end
   end
@@ -331,7 +332,7 @@ class MemoistTest < Minitest::Unit::TestCase
   end
 
   def test_double_memoization_with_identifier
-    Person.memoize :name, :identifier => :again
+    Person.memoize :name, identifier: :again
   end
 
   def test_memoization_with_a_subclass
@@ -344,7 +345,9 @@ class MemoistTest < Minitest::Unit::TestCase
 
   def test_memoization_is_chainable
     klass = Class.new do
-      def foo; "bar"; end
+      def foo
+        'bar'
+      end
     end
     klass.extend Memoist
     chainable = klass.memoize :foo
@@ -355,17 +358,16 @@ class MemoistTest < Minitest::Unit::TestCase
     person = Person.new
 
     assert_raises(NoMethodError) { person.memoize_protected_test }
-    assert_equal "protected", person.send(:memoize_protected_test)
+    assert_equal 'protected', person.send(:memoize_protected_test)
   end
 
   def test_private_method_memoization
     person = Person.new
 
-    assert_raises(NoMethodError) { person.is_developer? }
-    assert_equal "Yes", person.send(:is_developer?)
-    assert_equal 1, person.is_developer_calls
-    assert_equal "Yes", person.send(:is_developer?)
-    assert_equal 1, person.is_developer_calls
+    assert_raises(NoMethodError) { person.developer? }
+    assert_equal 'Yes', person.send(:developer?)
+    assert_equal 1, person.developer_calls
+    assert_equal 'Yes', person.send(:developer?)
+    assert_equal 1, person.developer_calls
   end
-
 end

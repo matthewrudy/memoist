@@ -1,4 +1,4 @@
-module Kernel
+module Kernel # :nodoc:
   # Returns the object's singleton class.
   def singleton_class
     class << self
