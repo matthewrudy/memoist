@@ -14,72 +14,81 @@ Usage
 
 Just extend with the Memoist module
 
-    require 'memoist'
-    class Person
-      extend Memoist
+```ruby
+require 'memoist'
+class Person
+  extend Memoist
 
-      def social_security
-        decrypt_social_security
-      end
-      memoize :social_security
-    end
+  def social_security
+    decrypt_social_security
+  end
+  memoize :social_security
+end
+```
 
 And person.social_security will only be calculated once.
 
 Every memoized function (which initially was not accepting any arguments) has a ```(reload)```
 argument you can pass in to bypass and reset the memoization:
 
-    def some_method
-      Time.now
-    end
-    memoize :some_method
+```ruby
+def some_method
+  Time.now
+end
+memoize :some_method
+```
 
 Calling ```some_method``` will be memoized, but calling ```some_method(true)``` will rememoize each time.
 
 You can even memoize method that takes arguments.
 
-
-    class Person
-      def taxes_due(income)
-        income * 0.40
-      end
-      memoize :taxes_due
-    end
+```ruby
+class Person
+  def taxes_due(income)
+    income * 0.40
+  end
+  memoize :taxes_due
+end
+```
 
 This will only be calculated once per value of income.
 
 You can also memoize class methods.
 
-    class Person
+```ruby
+class Person
 
-      class << self
-        extend Memoist
-        def with_overdue_taxes
-          # ...
-        end
-        memoize :with_overdue_taxes
-      end
-
+  class << self
+    extend Memoist
+    def with_overdue_taxes
+      # ...
     end
+    memoize :with_overdue_taxes
+  end
+
+end
+```
 
 When a sub-class overrides one of its parent's methods and you need to memoize both. 
 Then you can use the `:identifier` parameter in order to help _Memoist_ distinguish between the two.
 
-    class Clock
-      extend Memoist
-      def now
-         "The time now is #{Time.now.hour} o'clock and #{Time.now.min} minutes"
-      end
-      memoize :now
-    end
+```ruby
+class Clock
+  extend Memoist
+  def now
+     "The time now is #{Time.now.hour} o'clock and #{Time.now.min} minutes"
+  end
+  memoize :now
+end
 
-    class AccurateClock < Clock
-      extend Memoist
-      def now
-        "#{super} and #{Time.now.sec} seconds"
-      end
-      memoize :now, :identifier => :accurate_clock
-    end
+class AccurateClock < Clock
+  extend Memoist
+  def now
+    "#{super} and #{Time.now.sec} seconds"
+  end
+  memoize :now, :identifier => :accurate_clock
+end
+```
 
 
 Reload
@@ -87,17 +96,23 @@ Reload
 
 Each memoized function comes with a way to flush the existing value.
 
-    person.social_security       # returns the memoized value
-    person.social_security(true) # bypasses the memoized value and rememoizes it
+```ruby
+person.social_security       # returns the memoized value
+person.social_security(true) # bypasses the memoized value and rememoizes it
+```
 
 This also works with a memoized method with arguments
 
-    person.taxes_due(100_000)       # returns the memoized value
-    person.taxes_due(100_000, true) # bypasses the memoized value and rememoizes it
+```ruby
+person.taxes_due(100_000)       # returns the memoized value
+person.taxes_due(100_000, true) # bypasses the memoized value and rememoizes it
+```
 
 If you want to flush the entire memoization cache for an object
 
-    person.flush_cache
+```ruby
+person.flush_cache
+```
 
 Authors
 ===========
