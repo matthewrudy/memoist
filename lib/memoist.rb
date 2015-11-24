@@ -68,12 +68,7 @@ module Memoist
 
     def flush_cache(*method_names)
       if method_names.empty?
-        prefix = Memoist.unmemoized_prefix+"_"
-        method_names = (methods + private_methods + protected_methods).collect do |method_name|
-          if method_name.to_s.start_with?(prefix)
-            method_name[prefix.length..-1]
-          end
-        end.compact
+        method_names = self.class.memoized_methods
       end
 
       method_names.each do |method_name|
@@ -86,6 +81,13 @@ module Memoist
   def memoize(*method_names)
     if method_names.last.is_a?(Hash)
       identifier = method_names.pop[:identifier]
+    end
+
+    Memoist.memoist_eval(self) do
+      def self.memoized_methods
+        require 'set'
+        @_memoized_methods ||= Set.new
+      end
     end
 
     method_names.each do |method_name|
@@ -101,6 +103,7 @@ module Memoist
         end
         alias_method unmemoized_method, method_name
 
+        self.memoized_methods << method_name
         if instance_method(method_name).arity == 0
 
           # define a method like this;
