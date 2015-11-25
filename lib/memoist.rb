@@ -60,15 +60,7 @@ module Memoist
     end
 
     def prime_cache(*method_names)
-      if method_names.empty?
-        prefix = Memoist.unmemoized_prefix+"_"
-        method_names = methods.collect do |method_name|
-          if method_name.to_s.start_with?(prefix)
-            method_name[prefix.length..-1]
-          end
-        end.compact
-      end
-
+      method_names = self.class.memoized_methods if method_names.empty?
       method_names.each do |method_name|
         if method(Memoist.unmemoized_method_for(method_name)).arity == 0
           __send__(method_name)
