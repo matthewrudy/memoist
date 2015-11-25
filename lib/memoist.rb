@@ -76,9 +76,7 @@ module Memoist
     end
 
     def flush_cache(*method_names)
-      if method_names.empty?
-        method_names = self.class.memoized_methods
-      end
+      method_names = self.class.memoized_methods if method_names.empty?
 
       method_names.each do |method_name|
         ivar = Memoist.memoized_ivar_for(method_name)
