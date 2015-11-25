@@ -7,7 +7,7 @@ module Memoist
   end
 
   def self.unmemoized_method_for(method_name, identifier=nil)
-    [unmemoized_prefix(identifier), method_name].join("_").to_sym
+    "#{unmemoized_prefix(identifier)}_#{method_name}".to_sym
   end
 
   def self.memoized_prefix(identifier=nil)
@@ -19,7 +19,11 @@ module Memoist
   end
 
   def self.unmemoized_prefix(identifier=nil)
-    ["_unmemoized", identifier].compact.join("_")
+    if identifier
+      "_unmemoized_#{identifier}"
+    else
+      "_unmemoized".freeze
+    end
   end
 
   def self.escape_punctuation(string)
