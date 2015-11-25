@@ -23,7 +23,16 @@ module Memoist
   end
 
   def self.escape_punctuation(string)
-    string.sub(/\?\Z/, '_query'.freeze).sub(/!\Z/, '_bang'.freeze)
+    return string unless string.end_with?('?'.freeze, '!'.freeze)
+
+    string = string.dup
+
+    # A String can't end in both ? and !
+    if string.sub!(/\?\Z/, '_query'.freeze)
+    else
+      string.sub!(/!\Z/, '_bang'.freeze)
+    end
+    string
   end
 
   def self.memoist_eval(klass, *args, &block)
