@@ -3,7 +3,7 @@ require 'memoist/core_ext/singleton_class'
 module Memoist
 
   def self.memoized_ivar_for(method_name, identifier=nil)
-    ["@#{memoized_prefix(identifier)}", escape_punctuation(method_name.to_s)].join("_")
+    "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name.to_s)}"
   end
 
   def self.unmemoized_method_for(method_name, identifier=nil)
@@ -11,7 +11,7 @@ module Memoist
   end
 
   def self.memoized_prefix(identifier=nil)
-    ["_memoized", identifier].compact.join("_")
+    ["_memoized".freeze, identifier].compact.join("_".freeze)
   end
 
   def self.unmemoized_prefix(identifier=nil)
@@ -19,7 +19,7 @@ module Memoist
   end
 
   def self.escape_punctuation(string)
-    string.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')
+    string.sub(/\?\Z/, '_query'.freeze).sub(/!\Z/, '_bang'.freeze)
   end
 
   def self.memoist_eval(klass, *args, &block)
