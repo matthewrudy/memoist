@@ -11,7 +11,11 @@ module Memoist
   end
 
   def self.memoized_prefix(identifier=nil)
-    ["_memoized".freeze, identifier].compact.join("_".freeze)
+    if identifier
+      "_memoized_#{identifier}"
+    else
+      "_memoized".freeze
+    end
   end
 
   def self.unmemoized_prefix(identifier=nil)
