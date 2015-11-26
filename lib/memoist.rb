@@ -3,23 +3,40 @@ require 'memoist/core_ext/singleton_class'
 module Memoist
 
   def self.memoized_ivar_for(method_name, identifier=nil)
-    ["@#{memoized_prefix(identifier)}", escape_punctuation(method_name.to_s)].join("_")
+    "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name.to_s)}"
   end
 
   def self.unmemoized_method_for(method_name, identifier=nil)
-    [unmemoized_prefix(identifier), method_name].join("_").to_sym
+    "#{unmemoized_prefix(identifier)}_#{method_name}".to_sym
   end
 
   def self.memoized_prefix(identifier=nil)
-    ["_memoized", identifier].compact.join("_")
+    if identifier
+      "_memoized_#{identifier}"
+    else
+      "_memoized".freeze
+    end
   end
 
   def self.unmemoized_prefix(identifier=nil)
-    ["_unmemoized", identifier].compact.join("_")
+    if identifier
+      "_unmemoized_#{identifier}"
+    else
+      "_unmemoized".freeze
+    end
   end
 
   def self.escape_punctuation(string)
-    string.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')
+    return string unless string.end_with?('?'.freeze, '!'.freeze)
+
+    string = string.dup
+
+    # A String can't end in both ? and !
+    if string.sub!(/\?\Z/, '_query'.freeze)
+    else
+      string.sub!(/!\Z/, '_bang'.freeze)
+    end
+    string
   end
 
   def self.memoist_eval(klass, *args, &block)
@@ -47,15 +64,7 @@ module Memoist
     end
 
     def prime_cache(*method_names)
-      if method_names.empty?
-        prefix = Memoist.unmemoized_prefix+"_"
-        method_names = methods.collect do |method_name|
-          if method_name.to_s.start_with?(prefix)
-            method_name[prefix.length..-1]
-          end
-        end.compact
-      end
-
+      method_names = self.class.memoized_methods if method_names.empty?
       method_names.each do |method_name|
         if method(Memoist.unmemoized_method_for(method_name)).arity == 0
           __send__(method_name)
@@ -67,14 +76,7 @@ module Memoist
     end
 
     def flush_cache(*method_names)
-      if method_names.empty?
-        prefix = Memoist.unmemoized_prefix+"_"
-        method_names = (methods + private_methods + protected_methods).collect do |method_name|
-          if method_name.to_s.start_with?(prefix)
-            method_name[prefix.length..-1]
-          end
-        end.compact
-      end
+      method_names = self.class.memoized_methods if method_names.empty?
 
       method_names.each do |method_name|
         ivar = Memoist.memoized_ivar_for(method_name)
@@ -86,6 +88,13 @@ module Memoist
   def memoize(*method_names)
     if method_names.last.is_a?(Hash)
       identifier = method_names.pop[:identifier]
+    end
+
+    Memoist.memoist_eval(self) do
+      def self.memoized_methods
+        require 'set'
+        @_memoized_methods ||= Set.new
+      end
     end
 
     method_names.each do |method_name|
@@ -101,6 +110,7 @@ module Memoist
         end
         alias_method unmemoized_method, method_name
 
+        self.memoized_methods << method_name
         if instance_method(method_name).arity == 0
 
           # define a method like this;
