@@ -85,6 +85,22 @@ module Memoist
     end
   end
 
+  class Result
+    attr_reader :error, :value
+
+    def initialize
+      begin
+        @value = yield
+      rescue => e
+        @error = e
+      end
+    end
+
+    def fetch
+      error ? raise(error) : value
+    end
+  end
+
   def memoize(*method_names)
     if method_names.last.is_a?(Hash)
       identifier = method_names.pop[:identifier]
@@ -120,16 +136,18 @@ module Memoist
           #   set_cache = skip_cache && !frozen?
           #
           #   if skip_cache
-          #     value = _unmemoized_mime_type
+          #     result = ::Memoist::Result.new do
+          #       _unmemoized_mime_type
+          #     end
           #   else
-          #     value = @_memoized_mime_type
+          #     result = @_memoized_mime_type
           #   end
           #
           #   if set_cache
-          #     @_memoized_mime_type = value
+          #     @_memoized_mime_type = result
           #   end
           #
-          #   value
+          #   result.fetch
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
@@ -138,16 +156,18 @@ module Memoist
               set_cache = skip_cache && !frozen?
 
               if skip_cache
-                value = #{unmemoized_method}
+                result = ::Memoist::Result.new do
+                  #{unmemoized_method}
+                end
               else
-                value = #{memoized_ivar}
+                result = #{memoized_ivar}
               end
 
               if set_cache
-                #{memoized_ivar} = value
+                #{memoized_ivar} = result
               end
 
-              value
+              result.fetch
             end
           EOS
         else
@@ -161,17 +181,19 @@ module Memoist
           #   set_cache = skip_cache && !frozen
           #
           #   if skip_cache
-          #     value = _unmemoized_mime_type(*args)
+          #     result = ::Memoist::Result.new do
+          #       _unmemoized_mime_type(*args)
+          #     end
           #   else
-          #     value = @_memoized_mime_type[args]
+          #     result = @_memoized_mime_type[args]
           #   end
           #
           #   if set_cache
           #     @_memoized_mime_type ||= {}
-          #     @_memoized_mime_type[args] = value
+          #     @_memoized_mime_type[args] = result
           #   end
           #
-          #   value
+          #   result.fetch
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
@@ -182,17 +204,19 @@ module Memoist
               set_cache = skip_cache && !frozen?
 
               if skip_cache
-                value = #{unmemoized_method}(*args)
+                result = ::Memoist::Result.new do
+                  #{unmemoized_method}(*args)
+                end
               else
-                value = #{memoized_ivar}[args]
+                result = #{memoized_ivar}[args]
               end
 
               if set_cache
                 #{memoized_ivar} ||= {}
-                #{memoized_ivar}[args] = value
+                #{memoized_ivar}[args] = result
               end
 
-              value
+              result.fetch
             end
           EOS
         end
