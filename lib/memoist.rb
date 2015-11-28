@@ -3,7 +3,7 @@ require 'memoist/core_ext/singleton_class'
 module Memoist
 
   def self.memoized_ivar_for(method_name, identifier=nil)
-    "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name.to_s)}"
+    "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name)}"
   end
 
   def self.unmemoized_method_for(method_name, identifier=nil)
@@ -27,9 +27,9 @@ module Memoist
   end
 
   def self.escape_punctuation(string)
-    return string unless string.end_with?('?'.freeze, '!'.freeze)
+    string = string.is_a?(String) ? string.dup : string.to_s
 
-    string = string.dup
+    return string unless string.end_with?('?'.freeze, '!'.freeze)
 
     # A String can't end in both ? and !
     if string.sub!(/\?\Z/, '_query'.freeze)
