@@ -114,6 +114,13 @@ class MemoistTest < Minitest::Test
     memoize :name, :identifier => :student
   end
 
+  class Teacher < Person
+    def seniority
+      "very_senior"
+    end
+    memoize :seniority
+  end
+
   class Company
     attr_reader :name_calls
     def initialize
@@ -261,9 +268,73 @@ class MemoistTest < Minitest::Test
     assert_equal 2, @calculator.counter
   end
 
+  def test_all_memoized_structs
+    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Student < Person   memoize :name, :identifier => :student
+    # Teacher < Person   memoize :seniority
+
+    expected = %w(age is_developer? memoize_protected_test name name? sleep update update_attributes)
+    structs = Person.all_memoized_structs
+    assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
+    assert_equal "@_memoized_name", structs.detect {|s| s.memoized_method == :name }.ivar
+
+    # Same expected methods
+    structs = Student.all_memoized_structs
+    assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
+    assert_equal "@_memoized_student_name", structs.detect {|s| s.memoized_method == :name }.ivar
+
+    expected = (expected << "seniority").sort
+    structs = Teacher.all_memoized_structs
+    assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
+    assert_equal "@_memoized_name", structs.detect {|s| s.memoized_method == :name }.ivar
+  end
+
+  def test_unmemoize_all_subclasses
+    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Student < Person   memoize :name, :identifier => :student
+    # Teacher < Person   memoize :seniority
+
+    teacher = Teacher.new
+    assert_equal "Josh", teacher.name
+    assert_equal "Josh", teacher.instance_variable_get(:@_memoized_name)
+    assert_equal "very_senior", teacher.seniority
+    assert_equal "very_senior", teacher.instance_variable_get(:@_memoized_seniority)
+
+    teacher.unmemoize_all
+    assert_nil teacher.instance_variable_get(:@_memoized_name)
+    assert_nil teacher.instance_variable_get(:@_memoized_seniority)
+
+    student = Student.new
+    assert_equal "Student Josh", student.name
+    assert_equal "Student Josh", student.instance_variable_get(:@_memoized_student_name)
+    assert_nil student.instance_variable_get(:@_memoized_seniority)
+
+    student.unmemoize_all
+    assert_nil student.instance_variable_get(:@_memoized_student_name)
+  end
+
   def test_memoize_all
     @calculator.memoize_all
     assert @calculator.instance_variable_defined?(:@_memoized_counter)
+  end
+
+  def test_memoize_all_subclasses
+    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Student < Person   memoize :name, :identifier => :student
+    # Teacher < Person   memoize :seniority
+
+    teacher = Teacher.new
+    teacher.memoize_all
+
+    assert_equal "very_senior", teacher.instance_variable_get(:@_memoized_seniority)
+    assert_equal "Josh", teacher.instance_variable_get(:@_memoized_name)
+
+    student = Student.new
+    student.memoize_all
+
+    assert_equal "Student Josh", student.instance_variable_get(:@_memoized_student_name)
+    assert_equal "Student Josh", student.name
+    assert_nil student.instance_variable_get(:@_memoized_seniority)
   end
 
   def test_memoization_cache_is_different_for_each_instance
@@ -331,7 +402,29 @@ class MemoistTest < Minitest::Test
   end
 
   def test_double_memoization_with_identifier
+    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Student < Person   memoize :name, :identifier => :student
+    # Teacher < Person   memoize :seniority
+
     Person.memoize :name, :identifier => :again
+    p = Person.new
+    assert_equal "Josh", p.name
+    assert p.instance_variable_get(:@_memoized_again_name)
+
+    # HACK: tl;dr: Don't memoize classes in test that are used elsewhere.
+    # Calling Person.memoize :name, :identifier => :again pollutes Person
+    # and descendents since we cache the memoized method structures.
+    # This populates those structs, verifies Person is polluted, resets the
+    # structs, cleans up cached memoized_methods
+    Student.all_memoized_structs
+    Person.all_memoized_structs
+    Teacher.all_memoized_structs
+    assert Person.memoized_methods.any? { |m| m.ivar == "@_memoized_again_name" }
+
+    [Student, Teacher, Person].each { |obj| obj.clear_structs }
+    assert Person.memoized_methods.reject!      { |m| m.ivar == "@_memoized_again_name" }
+    assert_nil Student.memoized_methods.reject! { |m| m.ivar == "@_memoized_again_name" }
+    assert_nil Teacher.memoized_methods.reject! { |m| m.ivar == "@_memoized_again_name" }
   end
 
   def test_memoization_with_a_subclass
