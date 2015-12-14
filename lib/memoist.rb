@@ -3,7 +3,7 @@ require 'memoist/core_ext/singleton_class'
 module Memoist
 
   def self.memoized_ivar_for(method_name, identifier=nil)
-    "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name.to_s)}"
+    "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name)}"
   end
 
   def self.unmemoized_method_for(method_name, identifier=nil)
@@ -27,9 +27,9 @@ module Memoist
   end
 
   def self.escape_punctuation(string)
-    return string unless string.end_with?('?'.freeze, '!'.freeze)
+    string = string.is_a?(String) ? string.dup : string.to_s
 
-    string = string.dup
+    return string unless string.end_with?('?'.freeze, '!'.freeze)
 
     # A String can't end in both ? and !
     if string.sub!(/\?\Z/, '_query'.freeze)
@@ -63,26 +63,50 @@ module Memoist
       flush_cache
     end
 
+    def memoized_structs(names)
+      structs = self.class.all_memoized_structs
+      return structs if names.empty?
+
+      structs.select { |s| names.include?(s.memoized_method) }
+    end
+
     def prime_cache(*method_names)
-      method_names = self.class.memoized_methods if method_names.empty?
-      method_names.each do |method_name|
-        if method(Memoist.unmemoized_method_for(method_name)).arity == 0
-          __send__(method_name)
+      memoized_structs(method_names).each do |struct|
+        if struct.arity == 0
+          __send__(struct.memoized_method)
         else
-          ivar = Memoist.memoized_ivar_for(method_name)
-          instance_variable_set(ivar, {})
+          instance_variable_set(struct.ivar, {})
         end
       end
     end
 
     def flush_cache(*method_names)
-      method_names = self.class.memoized_methods if method_names.empty?
-
-      method_names.each do |method_name|
-        ivar = Memoist.memoized_ivar_for(method_name)
-        remove_instance_variable(ivar) if instance_variable_defined?(ivar)
+      memoized_structs(method_names).each do |struct|
+        remove_instance_variable(struct.ivar) if instance_variable_defined?(struct.ivar)
       end
     end
+  end
+
+  MemoizedMethod = Struct.new(:memoized_method, :ivar, :arity)
+
+  def all_memoized_structs
+    @all_memoized_structs ||= begin
+      structs = memoized_methods.dup
+
+      # Collect the memoized_methods of ancestors in ancestor order
+      # unless we already have it since self or parents could be overriding
+      # an ancestor method.
+      ancestors.grep(Memoist).each do |ancestor|
+        ancestor.memoized_methods.each do |m|
+          structs << m unless structs.any? {|am| am.memoized_method == m.memoized_method }
+        end
+      end
+      structs
+    end
+  end
+
+  def clear_structs
+    @all_memoized_structs = nil
   end
 
   def memoize(*method_names)
@@ -92,8 +116,7 @@ module Memoist
 
     Memoist.memoist_eval(self) do
       def self.memoized_methods
-        require 'set'
-        @_memoized_methods ||= Set.new
+        @_memoized_methods ||= []
       end
     end
 
@@ -110,8 +133,9 @@ module Memoist
         end
         alias_method unmemoized_method, method_name
 
-        self.memoized_methods << method_name
-        if instance_method(method_name).arity == 0
+        mm = MemoizedMethod.new(method_name, memoized_ivar, instance_method(method_name).arity)
+        self.memoized_methods << mm
+        if mm.arity == 0
 
           # define a method like this;
 
