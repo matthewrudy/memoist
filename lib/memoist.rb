@@ -115,7 +115,7 @@ module Memoist
       identifier = method_names.pop[:identifier]
     end
 
-    memoize_caller = caller(1..1).first
+    memoize_caller = caller[1]
 
     Memoist.memoist_eval(self) do
       def self.memoized_methods
