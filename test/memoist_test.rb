@@ -461,4 +461,20 @@ class MemoistTest < Minitest::Test
     assert_equal 1, person.is_developer_calls
   end
 
+  def test_blocks_supported
+    person = Person.new
+
+    assert_raises(Memoist::BlocksNotSupported) { person.name { :block } }
+    assert_raises(Memoist::BlocksNotSupported) { person.update('smth') { :block } }
+  end
+
+  def test_block_contains_proper_caller
+    person = Person.new
+
+    begin
+      person.name { :block }
+    rescue Memoist::BlocksNotSupported => e
+      assert(e.message =~ /memoist_test.rb:\d+/, "message should contain caller of memoize")
+    end
+  end
 end
