@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'memoist/core_ext/singleton_class'
 
 module Memoist

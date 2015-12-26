@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Kernel
   # Returns the object's singleton class.
   def singleton_class
