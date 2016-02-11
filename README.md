@@ -1,7 +1,7 @@
 Memoist
 =============
 
-[![Build Status](https://travis-ci.org/matthewrudy/memoist.png?branch=master)](https://travis-ci.org/matthewrudy/memoist)
+[![Build Status](https://travis-ci.org/matthewrudy/memoist.svg?branch=master)](https://travis-ci.org/matthewrudy/memoist)
 
 [![ghit.me](https://ghit.me/badge.svg?repo=matthewrudy/memoist)](https://ghit.me/repo/matthewrudy/memoist)
 
