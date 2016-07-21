@@ -99,15 +99,19 @@ Reload
 Each memoized function comes with a way to flush the existing value.
 
 ```ruby
-person.social_security       # returns the memoized value
-person.social_security(true) # bypasses the memoized value and rememoizes it
+person.social_security            # returns the memoized value
+person.social_security(true)      # bypasses the memoized value and rememoizes it
+person.social_security(:reload)   # same as above
+person.social_security(reload: true)   # same as above
 ```
 
 This also works with a memoized method with arguments
 
 ```ruby
-person.taxes_due(100_000)       # returns the memoized value
-person.taxes_due(100_000, true) # bypasses the memoized value and rememoizes it
+person.taxes_due(100_000)           # returns the memoized value
+person.taxes_due(100_000, true)     # bypasses the memoized value and rememoizes it
+person.taxes_due(100_000, :reload)  # same as above
+person.taxes_due(100_000, reload: true)  # same as above
 ```
 
 If you want to flush the entire memoization cache for an object
