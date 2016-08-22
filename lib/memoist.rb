@@ -117,8 +117,10 @@ module Memoist
     end
 
     Memoist.memoist_eval(self) do
-      def self.memoized_methods
-        @_memoized_methods ||= []
+      unless singleton_class.method_defined?(:memoized_methods)
+        def self.memoized_methods
+          @_memoized_methods ||= []
+        end
       end
     end
 
