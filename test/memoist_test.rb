@@ -251,8 +251,7 @@ class MemoistTest < Minitest::Test
 
     assert @calculator.instance_variable_get(:@_memoized_counter)
     @calculator.flush_cache(:counter)
-    assert_nil @calculator.instance_variable_get(:@_memoized_counter)
-    assert !@calculator.instance_variable_defined?(:@_memoized_counter)
+    assert_equal false, @calculator.instance_variable_defined?(:@_memoized_counter)
 
     assert_equal 2, @calculator.counter
   end
@@ -260,10 +259,10 @@ class MemoistTest < Minitest::Test
   def test_unmemoize_all
     assert_equal 1, @calculator.counter
 
+    assert_equal true, @calculator.instance_variable_defined?(:@_memoized_counter)
     assert @calculator.instance_variable_get(:@_memoized_counter)
     @calculator.unmemoize_all
-    assert_nil @calculator.instance_variable_get(:@_memoized_counter)
-    assert !@calculator.instance_variable_defined?(:@_memoized_counter)
+    assert_equal false, @calculator.instance_variable_defined?(:@_memoized_counter)
 
     assert_equal 2, @calculator.counter
   end
@@ -301,21 +300,21 @@ class MemoistTest < Minitest::Test
     assert_equal "very_senior", teacher.instance_variable_get(:@_memoized_seniority)
 
     teacher.unmemoize_all
-    assert_nil teacher.instance_variable_get(:@_memoized_name)
-    assert_nil teacher.instance_variable_get(:@_memoized_seniority)
+    assert_equal false, teacher.instance_variable_defined?(:@_memoized_name)
+    assert_equal false, teacher.instance_variable_defined?(:@_memoized_seniority)
 
     student = Student.new
     assert_equal "Student Josh", student.name
     assert_equal "Student Josh", student.instance_variable_get(:@_memoized_student_name)
-    assert_nil student.instance_variable_get(:@_memoized_seniority)
+    assert_equal false, student.instance_variable_defined?(:@_memoized_seniority)
 
     student.unmemoize_all
-    assert_nil student.instance_variable_get(:@_memoized_student_name)
+    assert_equal false, @calculator.instance_variable_defined?(:@_memoized_student_name)
   end
 
   def test_memoize_all
     @calculator.memoize_all
-    assert @calculator.instance_variable_defined?(:@_memoized_counter)
+    assert_equal true, @calculator.instance_variable_defined?(:@_memoized_counter)
   end
 
   def test_memoize_all_subclasses
@@ -334,7 +333,7 @@ class MemoistTest < Minitest::Test
 
     assert_equal "Student Josh", student.instance_variable_get(:@_memoized_student_name)
     assert_equal "Student Josh", student.name
-    assert_nil student.instance_variable_get(:@_memoized_seniority)
+    assert_equal false, student.instance_variable_defined?(:@_memoized_seniority)
   end
 
   def test_memoization_cache_is_different_for_each_instance
