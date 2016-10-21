@@ -113,7 +113,7 @@ person.taxes_due(100_000, true) # bypasses the memoized value and rememoizes it
 If you want to flush the entire memoization cache for an object
 
 ```ruby
-person.flush_cache
+person.flush_cache   # returns an array of flushed memoized methods, e.g. ["social_security", "some_method"]
 ```
 
 Authors
