@@ -87,6 +87,20 @@ module Memoist
         remove_instance_variable(struct.ivar) if instance_variable_defined?(struct.ivar)
       end
     end
+
+    def write_memoized(method_name, args, value = nil)
+      memoized_struct = self.class.memoized_methods.find{|x| x.memoized_method == method_name}
+      ivar = memoized_struct.ivar
+      if memoized_struct.arity == 0
+        instance_variable_set(ivar, args)
+      else
+        if instance_variable_defined?(ivar)
+          instance_variable_get(ivar)[args] = value
+        else
+          instance_variable_set(ivar, {args => value})
+        end
+      end
+    end
   end
 
   MemoizedMethod = Struct.new(:memoized_method, :ivar, :arity)
