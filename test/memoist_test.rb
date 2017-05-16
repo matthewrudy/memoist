@@ -231,10 +231,10 @@ class MemoistTest < Minitest::Test
   end
 
   def test_memoization_with_nil_value
-    assert_equal nil, @person.age
+    assert_nil @person.age
     assert_equal 1, @person.age_calls
 
-    3.times { assert_equal nil, @person.age }
+    3.times { assert_nil @person.age }
     assert_equal 1, @person.age_calls
   end
 
