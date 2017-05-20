@@ -460,4 +460,25 @@ class MemoistTest < Minitest::Test
     assert_equal 1, person.is_developer_calls
   end
 
+  def test_write_memoized
+    person = Person.new
+    person.write_memoized(:name, "Charles")
+    assert_equal "Charles", person.name
+    assert_equal person.name_calls, 0
+  end
+
+  def test_write_memoized_with_arguments
+    person = Person.new
+    person.write_memoized(:sleep, [12], 11)
+    assert_equal 11, person.sleep(12)
+    assert_equal person.sleep_calls, 0
+  end
+
+  def test_write_memoized_with_indentifier
+    student = Student.new
+    student.write_memoized(:name, "Pinkman")
+    assert_equal "Pinkman", student.name
+    assert_equal student.name_calls, 0
+  end
+
 end
