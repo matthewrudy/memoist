@@ -66,7 +66,8 @@ module Memoist
     end
 
     def memoized_structs(names)
-      structs = self.class.all_memoized_structs
+      ref_obj = self.class.respond_to?(:class_eval) ? self.singleton_class : self
+      structs = ref_obj.all_memoized_structs
       return structs if names.empty?
 
       structs.select { |s| names.include?(s.memoized_method) }
