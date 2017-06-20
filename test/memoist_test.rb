@@ -2,9 +2,7 @@ require 'test_helper'
 require 'memoist'
 
 class MemoistTest < Minitest::Test
-
   class CallCounter
-
     def initialize
       @calls = {}
     end
@@ -17,7 +15,6 @@ class MemoistTest < Minitest::Test
     def count(method_name)
       @calls[method_name] ||= 0
     end
-
   end
 
   class Person
@@ -49,7 +46,7 @@ class MemoistTest < Minitest::Test
 
     def name
       @counter.call(:name)
-      "Josh"
+      'Josh'
     end
 
     def name?
@@ -58,8 +55,8 @@ class MemoistTest < Minitest::Test
     end
     memoize :name?
 
-    def update(name)
-      "Joshua"
+    def update(_name)
+      'Joshua'
     end
     memoize :update
 
@@ -80,7 +77,7 @@ class MemoistTest < Minitest::Test
       @counter.count(:sleep)
     end
 
-    def update_attributes(options = {})
+    def update_attributes(_options = {})
       @counter.call(:update_attributes)
       true
     end
@@ -101,7 +98,7 @@ class MemoistTest < Minitest::Test
 
     def is_developer?
       @counter.call(:is_developer?)
-      "Yes"
+      'Yes'
     end
     memoize :is_developer?
   end
@@ -111,12 +108,12 @@ class MemoistTest < Minitest::Test
       @counter.call(:student_name)
       "Student #{super}"
     end
-    memoize :name, :identifier => :student
+    memoize :name, identifier: :student
   end
 
   class Teacher < Person
     def seniority
-      "very_senior"
+      'very_senior'
     end
     memoize :seniority
   end
@@ -129,7 +126,7 @@ class MemoistTest < Minitest::Test
 
     def name
       @name_calls += 1
-      "37signals"
+      '37signals'
     end
   end
 
@@ -183,9 +180,9 @@ class MemoistTest < Minitest::Test
 
   class Book
     extend Memoist
-    STATUSES = %w(new used)
-    CLASSIFICATION = %w(fiction nonfiction)
-    GENRES = %w(humor romance reference sci-fi classic philosophy)
+    STATUSES = %w[new used].freeze
+    CLASSIFICATION = %w[fiction nonfiction].freeze
+    GENRES = %w[humor romance reference sci-fi classic philosophy].freeze
 
     attr_reader :title, :author
     def initialize(title, author)
@@ -202,7 +199,7 @@ class MemoistTest < Minitest::Test
       extend Memoist
 
       def all_types
-        STATUSES.product(CLASSIFICATION).product(GENRES).collect { |a| a.flatten }
+        STATUSES.product(CLASSIFICATION).product(GENRES).collect(&:flatten)
       end
       memoize :all_types
     end
@@ -211,7 +208,7 @@ class MemoistTest < Minitest::Test
   class Abb
     extend Memoist
 
-    def run(*args)
+    def run(*_args)
       flush_cache if respond_to?(:flush_cache)
       execute
     end
@@ -226,7 +223,6 @@ class MemoistTest < Minitest::Test
   end
 
   class Bbb < Abb
-
     def some_method
       :foo
     end
@@ -236,14 +232,14 @@ class MemoistTest < Minitest::Test
   def setup
     @person = Person.new
     @calculator = Calculator.new
-    @book = Book.new("My Life", "Brian 'Fudge' Turmuck")
+    @book = Book.new('My Life', "Brian 'Fudge' Turmuck")
   end
 
   def test_memoization
-    assert_equal "Josh", @person.name
+    assert_equal 'Josh', @person.name
     assert_equal 1, @person.name_calls
 
-    3.times { assert_equal "Josh", @person.name }
+    3.times { assert_equal 'Josh', @person.name }
     assert_equal 1, @person.name_calls
   end
 
@@ -259,13 +255,13 @@ class MemoistTest < Minitest::Test
   end
 
   def test_memoize_with_options_hash
-    assert_equal true, @person.update_attributes(:age => 21, :name => 'James')
+    assert_equal true, @person.update_attributes(age: 21, name: 'James')
     assert_equal 1, @person.update_attributes_calls
 
-    3.times { assert_equal true, @person.update_attributes(:age => 21, :name => 'James') }
+    3.times { assert_equal true, @person.update_attributes(age: 21, name: 'James') }
     assert_equal 1, @person.update_attributes_calls
 
-    3.times { assert_equal true, @person.update_attributes({:age => 21, :name => 'James'}, :reload) }
+    3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, :reload) }
     assert_equal 4, @person.update_attributes_calls
   end
 
@@ -323,12 +319,12 @@ class MemoistTest < Minitest::Test
     @book.memoize_all
     Book.memoize_all
     assert_equal "My Life by Brian 'Fudge' Turmuck", @book.full_title
-    
+
     Book.flush_cache
     assert_equal false, Book.instance_variable_defined?(:@_memoized_all_types)
     assert_equal "My Life by Brian 'Fudge' Turmuck", @book.full_title
   end
-   
+
   def test_flush_cache_in_child_class
     x = Bbb.new
 
@@ -352,20 +348,20 @@ class MemoistTest < Minitest::Test
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
-    expected = %w(age is_developer? memoize_protected_test name name? sleep update update_attributes)
+    expected = %w[age is_developer? memoize_protected_test name name? sleep update update_attributes]
     structs = Person.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
-    assert_equal "@_memoized_name", structs.detect {|s| s.memoized_method == :name }.ivar
+    assert_equal '@_memoized_name', structs.detect { |s| s.memoized_method == :name }.ivar
 
     # Same expected methods
     structs = Student.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
-    assert_equal "@_memoized_student_name", structs.detect {|s| s.memoized_method == :name }.ivar
+    assert_equal '@_memoized_student_name', structs.detect { |s| s.memoized_method == :name }.ivar
 
-    expected = (expected << "seniority").sort
+    expected = (expected << 'seniority').sort
     structs = Teacher.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
-    assert_equal "@_memoized_name", structs.detect {|s| s.memoized_method == :name }.ivar
+    assert_equal '@_memoized_name', structs.detect { |s| s.memoized_method == :name }.ivar
   end
 
   def test_unmemoize_all_subclasses
@@ -374,18 +370,18 @@ class MemoistTest < Minitest::Test
     # Teacher < Person   memoize :seniority
 
     teacher = Teacher.new
-    assert_equal "Josh", teacher.name
-    assert_equal "Josh", teacher.instance_variable_get(:@_memoized_name)
-    assert_equal "very_senior", teacher.seniority
-    assert_equal "very_senior", teacher.instance_variable_get(:@_memoized_seniority)
+    assert_equal 'Josh', teacher.name
+    assert_equal 'Josh', teacher.instance_variable_get(:@_memoized_name)
+    assert_equal 'very_senior', teacher.seniority
+    assert_equal 'very_senior', teacher.instance_variable_get(:@_memoized_seniority)
 
     teacher.unmemoize_all
     assert_equal false, teacher.instance_variable_defined?(:@_memoized_name)
     assert_equal false, teacher.instance_variable_defined?(:@_memoized_seniority)
 
     student = Student.new
-    assert_equal "Student Josh", student.name
-    assert_equal "Student Josh", student.instance_variable_get(:@_memoized_student_name)
+    assert_equal 'Student Josh', student.name
+    assert_equal 'Student Josh', student.instance_variable_get(:@_memoized_student_name)
     assert_equal false, student.instance_variable_defined?(:@_memoized_seniority)
 
     student.unmemoize_all
@@ -405,14 +401,14 @@ class MemoistTest < Minitest::Test
     teacher = Teacher.new
     teacher.memoize_all
 
-    assert_equal "very_senior", teacher.instance_variable_get(:@_memoized_seniority)
-    assert_equal "Josh", teacher.instance_variable_get(:@_memoized_name)
+    assert_equal 'very_senior', teacher.instance_variable_get(:@_memoized_seniority)
+    assert_equal 'Josh', teacher.instance_variable_get(:@_memoized_name)
 
     student = Student.new
     student.memoize_all
 
-    assert_equal "Student Josh", student.instance_variable_get(:@_memoized_student_name)
-    assert_equal "Student Josh", student.name
+    assert_equal 'Student Josh', student.instance_variable_get(:@_memoized_student_name)
+    assert_equal 'Student Josh', student.name
     assert_equal false, student.instance_variable_defined?(:@_memoized_seniority)
   end
 
@@ -434,8 +430,8 @@ class MemoistTest < Minitest::Test
 
   def test_memoized_is_not_affected_by_freeze
     @person.freeze
-    assert_equal "Josh", @person.name
-    assert_equal "Joshua", @person.update("Joshua")
+    assert_equal 'Josh', @person.name
+    assert_equal 'Joshua', @person.update('Joshua')
   end
 
   def test_memoization_with_args
@@ -462,9 +458,9 @@ class MemoistTest < Minitest::Test
       company.extend Memoist
       company.memoize :name
 
-      assert_equal "37signals", company.name
+      assert_equal '37signals', company.name
       assert_equal 1, company.name_calls
-      assert_equal "37signals", company.name
+      assert_equal '37signals', company.name
       assert_equal 1, company.name_calls
     end
   end
@@ -495,9 +491,9 @@ class MemoistTest < Minitest::Test
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
-    Person.memoize :name, :identifier => :again
+    Person.memoize :name, identifier: :again
     p = Person.new
-    assert_equal "Josh", p.name
+    assert_equal 'Josh', p.name
     assert p.instance_variable_get(:@_memoized_again_name)
 
     # HACK: tl;dr: Don't memoize classes in test that are used elsewhere.
@@ -508,12 +504,12 @@ class MemoistTest < Minitest::Test
     Student.all_memoized_structs
     Person.all_memoized_structs
     Teacher.all_memoized_structs
-    assert Person.memoized_methods.any? { |m| m.ivar == "@_memoized_again_name" }
+    assert Person.memoized_methods.any? { |m| m.ivar == '@_memoized_again_name' }
 
-    [Student, Teacher, Person].each { |obj| obj.clear_structs }
-    assert Person.memoized_methods.reject!      { |m| m.ivar == "@_memoized_again_name" }
-    assert_nil Student.memoized_methods.reject! { |m| m.ivar == "@_memoized_again_name" }
-    assert_nil Teacher.memoized_methods.reject! { |m| m.ivar == "@_memoized_again_name" }
+    [Student, Teacher, Person].each(&:clear_structs)
+    assert Person.memoized_methods.reject!      { |m| m.ivar == '@_memoized_again_name' }
+    assert_nil Student.memoized_methods.reject! { |m| m.ivar == '@_memoized_again_name' }
+    assert_nil Teacher.memoized_methods.reject! { |m| m.ivar == '@_memoized_again_name' }
   end
 
   def test_memoization_with_a_subclass
@@ -526,7 +522,9 @@ class MemoistTest < Minitest::Test
 
   def test_memoization_is_chainable
     klass = Class.new do
-      def foo; "bar"; end
+      def foo
+        'bar'
+      end
     end
     klass.extend Memoist
     chainable = klass.memoize :foo
@@ -537,17 +535,16 @@ class MemoistTest < Minitest::Test
     person = Person.new
 
     assert_raises(NoMethodError) { person.memoize_protected_test }
-    assert_equal "protected", person.send(:memoize_protected_test)
+    assert_equal 'protected', person.send(:memoize_protected_test)
   end
 
   def test_private_method_memoization
     person = Person.new
 
     assert_raises(NoMethodError) { person.is_developer? }
-    assert_equal "Yes", person.send(:is_developer?)
+    assert_equal 'Yes', person.send(:is_developer?)
     assert_equal 1, person.is_developer_calls
-    assert_equal "Yes", person.send(:is_developer?)
+    assert_equal 'Yes', person.send(:is_developer?)
     assert_equal 1, person.is_developer_calls
   end
-
 end

@@ -1,4 +1,4 @@
-$:.unshift File.expand_path(File.dirname(__FILE__)+"/../lib")
+$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
 require 'benchmark/ips'
 
 require 'memoist'
@@ -7,7 +7,7 @@ class Benchy
   extend Memoist
 
   def arity_0
-    "Hello World"
+    'Hello World'
   end
   memoize :arity_0
 
@@ -22,7 +22,7 @@ OBJECT = Benchy.new
 puts "Benchmarking: #{Memoist::VERSION}"
 
 Benchmark.ips do |x|
-  x.report("arity 0 - memoized") do |times|
+  x.report('arity 0 - memoized') do |times|
     times.times do
       OBJECT.arity_0
     end
@@ -34,7 +34,7 @@ Benchmark.ips do |x|
   #   end
   # end
 
-  x.report("arity 1 - memoized") do |times|
+  x.report('arity 1 - memoized') do |times|
     times.times do
       OBJECT.arity_1(:World)
     end
