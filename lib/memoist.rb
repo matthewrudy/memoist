@@ -115,6 +115,11 @@ module Memoist
       end
       structs
     end
+
+    def set_cache(method_name, value)
+      memoized_ivar = Memoist.memoized_ivar_for(method_name)
+      instance_variable_set(memoized_ivar, value)
+    end
   end
 
   def clear_structs
