@@ -208,6 +208,31 @@ class MemoistTest < Minitest::Test
     end
   end
 
+  class Abb
+    extend Memoist
+
+    def run(*args)
+      flush_cache if respond_to?(:flush_cache)
+      execute
+    end
+
+    def execute
+      some_method
+    end
+
+    def some_method
+      # Override this
+    end
+  end
+
+  class Bbb < Abb
+
+    def some_method
+      :foo
+    end
+    memoize :some_method
+  end
+
   def setup
     @person = Person.new
     @calculator = Calculator.new
@@ -302,6 +327,13 @@ class MemoistTest < Minitest::Test
     Book.flush_cache
     assert_equal false, Book.instance_variable_defined?(:@_memoized_all_types)
     assert_equal "My Life by Brian 'Fudge' Turmuck", @book.full_title
+  end
+   
+  def test_flush_cache_in_child_class
+    x = Bbb.new
+
+    # This should not throw error
+    x.run
   end
 
   def test_unmemoize_all
