@@ -4,6 +4,16 @@ require 'memoist/core_ext/singleton_class'
 
 module Memoist
 
+  def self.extended(extender)
+    Memoist.memoist_eval(extender) do
+      unless singleton_class.method_defined?(:memoized_methods)
+        def self.memoized_methods
+          @_memoized_methods ||= []
+        end
+      end
+    end
+  end
+
   def self.memoized_ivar_for(method_name, identifier=nil)
     "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name)}"
   end
@@ -114,14 +124,6 @@ module Memoist
   def memoize(*method_names)
     if method_names.last.is_a?(Hash)
       identifier = method_names.pop[:identifier]
-    end
-
-    Memoist.memoist_eval(self) do
-      unless singleton_class.method_defined?(:memoized_methods)
-        def self.memoized_methods
-          @_memoized_methods ||= []
-        end
-      end
     end
 
     method_names.each do |method_name|
