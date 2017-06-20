@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 require 'memoist/version'
 require 'memoist/core_ext/singleton_class'
+require 'memoist/blocks_not_supported'
 
 module Memoist
 
@@ -121,7 +122,13 @@ module Memoist
     @all_memoized_structs = nil
   end
 
+  def memoize_caller
+    caller.find { |x| !x['lib/memoist.rb'] }
+  end
+
   def memoize(*method_names)
+    memoize_caller = self.memoize_caller
+    
     if method_names.last.is_a?(Hash)
       identifier = method_names.pop[:identifier]
     end
@@ -163,7 +170,13 @@ module Memoist
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(reload = false)
+            def #{method_name}(reload = false, &block)
+              if block
+                raise Memoist::BlocksNotSupported,
+                      "Calls with block is not alowed for memoized method #{method_name}\n" \
+                      "memoist called at #{memoize_caller}"
+              end
+
               skip_cache = reload || !instance_variable_defined?("#{memoized_ivar}")
               set_cache = skip_cache && !frozen?
 
@@ -205,7 +218,13 @@ module Memoist
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(*args)
+            def #{method_name}(*args, &block)
+              if block
+                raise Memoist::BlocksNotSupported,
+                      "Calls with block is not alowed for memoized method #{method_name}\n" \
+                      "memoist called at #{memoize_caller}"
+              end
+
               reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
 
               skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
