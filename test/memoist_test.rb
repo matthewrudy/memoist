@@ -181,6 +181,33 @@ class MemoistTest < Minitest::Test
     memoize :counter
   end
 
+  class Abb
+    extend Memoist
+
+    def run(*args)
+      flush_cache if respond_to?(:flush_cache)
+      execute
+    end
+
+    def execute
+      some_method
+    end
+
+    def some_method
+      # Override this
+    end
+  end
+
+  class Bbb < Abb
+
+    def some_method
+      :foo
+    end
+    memoize :some_method
+  end
+
+
+
   def setup
     @person = Person.new
     @calculator = Calculator.new
@@ -254,6 +281,13 @@ class MemoistTest < Minitest::Test
     assert_equal false, @calculator.instance_variable_defined?(:@_memoized_counter)
 
     assert_equal 2, @calculator.counter
+  end
+
+  def test_flush_cache_in_child_class
+    x = Bbb.new
+
+    # This should not throw error
+    x.run
   end
 
   def test_unmemoize_all
