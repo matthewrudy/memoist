@@ -181,6 +181,33 @@ class MemoistTest < Minitest::Test
     memoize :counter
   end
 
+  class Book
+    extend Memoist
+    STATUSES = %w(new used)
+    CLASSIFICATION = %w(fiction nonfiction)
+    GENRES = %w(humor romance reference sci-fi classic philosophy)
+
+    attr_reader :title, :author
+    def initialize(title, author)
+      @title = title
+      @author = author
+    end
+
+    def full_title
+      "#{@title} by #{@author}"
+    end
+    memoize :full_title
+
+    class << self
+      extend Memoist
+
+      def all_types
+        STATUSES.product(CLASSIFICATION).product(GENRES).collect { |a| a.flatten }
+      end
+      memoize :all_types
+    end
+  end
+
   class Abb
     extend Memoist
 
@@ -206,11 +233,10 @@ class MemoistTest < Minitest::Test
     memoize :some_method
   end
 
-
-
   def setup
     @person = Person.new
     @calculator = Calculator.new
+    @book = Book.new("My Life", "Brian 'Fudge' Turmuck")
   end
 
   def test_memoization
@@ -283,6 +309,26 @@ class MemoistTest < Minitest::Test
     assert_equal 2, @calculator.counter
   end
 
+  def test_class_flush_cache
+    @book.memoize_all
+    assert_equal "My Life by Brian 'Fudge' Turmuck", @book.full_title
+
+    Book.memoize_all
+    assert_instance_of Array, Book.instance_variable_get(:@_memoized_all_types)
+    Book.flush_cache
+    assert_equal false, Book.instance_variable_defined?(:@_memoized_all_types)
+  end
+
+  def test_class_flush_cache_preserves_instances
+    @book.memoize_all
+    Book.memoize_all
+    assert_equal "My Life by Brian 'Fudge' Turmuck", @book.full_title
+    
+    Book.flush_cache
+    assert_equal false, Book.instance_variable_defined?(:@_memoized_all_types)
+    assert_equal "My Life by Brian 'Fudge' Turmuck", @book.full_title
+  end
+   
   def test_flush_cache_in_child_class
     x = Bbb.new
 
@@ -374,6 +420,16 @@ class MemoistTest < Minitest::Test
     assert_equal 1, @calculator.counter
     assert_equal 2, @calculator.counter(:reload)
     assert_equal 1, Calculator.new.counter
+  end
+
+  def test_memoization_class_variables
+    @book.memoize_all
+    assert_equal "My Life by Brian 'Fudge' Turmuck", @book.instance_variable_get(:@_memoized_full_title)
+    assert_equal "My Life by Brian 'Fudge' Turmuck", @book.full_title
+
+    Book.memoize_all
+    assert_instance_of Array, Book.instance_variable_get(:@_memoized_all_types)
+    assert_equal 24, Book.all_types.count
   end
 
   def test_memoized_is_not_affected_by_freeze
