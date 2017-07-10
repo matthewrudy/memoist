@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'memoist/version'
-require 'memoist/core_ext/singleton_class'
 
 module Memoist
   def self.extended(extender)
