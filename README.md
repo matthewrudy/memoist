@@ -22,10 +22,20 @@ class Person
   extend Memoist
 
   def social_security
+    puts "execute!"
     decrypt_social_security
   end
   memoize :social_security
 end
+
+person = Person.new
+
+person.social_security
+# execute!
+# => (returns decrypt_social_security)
+
+person.social_security
+# => (returns the memoized value)
 ```
 
 And person.social_security will only be calculated once.
