@@ -3,8 +3,6 @@ Memoist
 
 [![Build Status](https://travis-ci.org/matthewrudy/memoist.svg?branch=master)](https://travis-ci.org/matthewrudy/memoist)
 
-[![ghit.me](https://ghit.me/badge.svg?repo=matthewrudy/memoist)](https://ghit.me/repo/matthewrudy/memoist)
-
 Memoist is an extraction of ActiveSupport::Memoizable.
 
 Since June 2011 ActiveSupport::Memoizable has been deprecated.
