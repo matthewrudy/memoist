@@ -67,7 +67,7 @@ class MemoistTest < Minitest::Test
 
     memoize :name, :age
 
-    def sleep(hours = 8)
+    def sleep(initial_delay, hours = 8, mins = 5)
       @counter.call(:sleep)
       hours
     end
@@ -244,13 +244,15 @@ class MemoistTest < Minitest::Test
   end
 
   def test_memoize_with_optional_arguments
-    assert_equal 4, @person.sleep(4)
+    assert_equal 4, @person.sleep(4, 4)
     assert_equal 1, @person.sleep_calls
 
-    3.times { assert_equal 4, @person.sleep(4) }
+    3.times { assert_equal 4, @person.sleep(4, 4) }
     assert_equal 1, @person.sleep_calls
 
-    3.times { assert_equal 4, @person.sleep(4, :reload) }
+    # There has been exactly one sleep call due to memoization
+    # Now, with reload, we'll have 3 more calls
+    3.times { assert_equal 10, @person.sleep(4, 10,:memoist_reload) }
     assert_equal 4, @person.sleep_calls
   end
 
@@ -261,7 +263,7 @@ class MemoistTest < Minitest::Test
     3.times { assert_equal true, @person.update_attributes(age: 21, name: 'James') }
     assert_equal 1, @person.update_attributes_calls
 
-    3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, :reload) }
+    3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, :memoist_reload) }
     assert_equal 4, @person.update_attributes_calls
   end
 
