@@ -252,7 +252,7 @@ class MemoistTest < Minitest::Test
 
     # There has been exactly one sleep call due to memoization
     # Now, with reload, we'll have 3 more calls
-    3.times { assert_equal 10, @person.sleep(4, 10,:memoist_reload) }
+    3.times { assert_equal 10, @person.sleep(4, 10, memoist_reload: true) }
     assert_equal 4, @person.sleep_calls
   end
 
@@ -263,7 +263,7 @@ class MemoistTest < Minitest::Test
     3.times { assert_equal true, @person.update_attributes(age: 21, name: 'James') }
     assert_equal 1, @person.update_attributes_calls
 
-    3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, :memoist_reload) }
+    3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, memoist_reload: true) }
     assert_equal 4, @person.update_attributes_calls
   end
 
