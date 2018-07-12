@@ -63,7 +63,7 @@ module Memoist
     # We don't want to extract out the last argument in this case.
     # Also, if the :memoist_reload flag is passed, we use that
     # irrespective of the arity.
-    if method.arity.negative? && args.length > 0 && args.last.is_a?(Hash)
+    if args.length > 0 && args.last.is_a?(Hash)
       named_args_hash = args.last
       reload = named_args_hash.delete :memoist_reload
       # If no other named args were passed, that means memoist_reload is an
@@ -74,8 +74,10 @@ module Memoist
       end
       return reload
     end
+    return false if method.arity.negative?
 
-    if args.length == method.arity.abs + 1 && (args.last == true || args.last == :reload)
+    # Legacy purposes, works only for methods with no optional/named args
+    if args.length == method.arity + 1 && (args.last == true || args.last == :reload)
       reload = args.pop
     end
     reload

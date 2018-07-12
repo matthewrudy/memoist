@@ -67,9 +67,9 @@ class MemoistTest < Minitest::Test
 
     memoize :name, :age
 
-    def sleep(initial_delay, hours = 8, mins = 5)
+    def sleep(hours, mins = 5, seconds: 0)
       @counter.call(:sleep)
-      hours
+      hours * 3600 + mins * 60 + seconds
     end
     memoize :sleep
 
@@ -241,19 +241,25 @@ class MemoistTest < Minitest::Test
 
     3.times { assert_equal 'Josh', @person.name }
     assert_equal 1, @person.name_calls
+
+    3.times { assert_equal 'Josh', @person.name(memoist_reload: true) }
+    assert_equal 4, @person.name_calls
   end
 
   def test_memoize_with_optional_arguments
-    assert_equal 4, @person.sleep(4, 4)
+    assert_equal 15000, @person.sleep(4, 10)
     assert_equal 1, @person.sleep_calls
 
-    3.times { assert_equal 4, @person.sleep(4, 4) }
+    3.times { assert_equal 15000, @person.sleep(4, 10) }
     assert_equal 1, @person.sleep_calls
+
+    3.times { assert_equal 15000, @person.sleep(4, 10, seconds: 0) }
+    assert_equal 2, @person.sleep_calls
 
     # There has been exactly one sleep call due to memoization
     # Now, with reload, we'll have 3 more calls
-    3.times { assert_equal 10, @person.sleep(4, 10, memoist_reload: true) }
-    assert_equal 4, @person.sleep_calls
+    3.times { assert_equal 15000, @person.sleep(4, 10, memoist_reload: true) }
+    assert_equal 5, @person.sleep_calls
   end
 
   def test_memoize_with_options_hash
@@ -295,6 +301,8 @@ class MemoistTest < Minitest::Test
     assert_equal 2, @calculator.counter
     assert_equal 3, @calculator.counter(true)
     assert_equal 3, @calculator.counter
+    assert_equal 4, @calculator.counter(memoist_reload: true)
+    assert_equal 4, @calculator.counter
   end
 
   def test_flush_cache
