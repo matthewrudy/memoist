@@ -554,9 +554,10 @@ class MemoistTest < Minitest::Test
         def self.name
           "Staff"
         end
-        memoize def name
+        def name
           'Overwritten'
         end
+        memoize :name
       end
     end
     assert_equal(
@@ -566,9 +567,10 @@ class MemoistTest < Minitest::Test
 
     err = assert_raises(StandardError) do
       Class.new(Person) do
-        memoize def name
+        def name
           'Overwritten'
         end
+        memoize :name
       end
     end
     assert_equal(
@@ -576,5 +578,4 @@ class MemoistTest < Minitest::Test
       err.message
     )
   end
-
 end
