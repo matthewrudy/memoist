@@ -61,7 +61,25 @@ module Memoist
   end
 
   def self.extract_reload!(method, args)
-    if args.length == method.arity.abs + 1 && (args.last == true || args.last == :reload)
+    # Arity is negative for methods with optional/named args
+    # We don't want to extract out the last argument in this case.
+    # Also, if the :memoist_reload flag is passed, we use that
+    # irrespective of the arity.
+    if args.length > 0 && args.last.is_a?(Hash)
+      named_args_hash = args.last
+      reload = named_args_hash.delete :memoist_reload
+      # If no other named args were passed, that means memoist_reload is an
+      # extra arg that we need to get rid of; otherwise Ruby will complain
+      # about argument number mismatch.
+      if named_args_hash.empty?
+        args.delete(named_args_hash)
+      end
+      return reload
+    end
+    return false if method.arity.negative?
+
+    # Legacy purposes, works only for methods with no optional/named args
+    if args.length == method.arity + 1 && (args.last == true || args.last == :reload)
       reload = args.pop
     end
     reload
