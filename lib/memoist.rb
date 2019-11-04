@@ -38,7 +38,7 @@ module Memoist
   end
 
   def self.escape_punctuation(string)
-    string = string.is_a?(String) ? string.dup : string.to_s
+    string = string.is_a?(String) ? string.dup : string.to_s.dup
 
     return string unless string.end_with?('?'.freeze, '!'.freeze)
 
