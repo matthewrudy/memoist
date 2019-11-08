@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/matthewrudy/memoist/tree/HEAD)
+## [v0.16.1](https://github.com/matthewrudy/memoist/tree/v0.16.1) (2019-11-08)
 
-[Full Changelog](https://github.com/matthewrudy/memoist/compare/v0.16.0...HEAD)
+[Full Changelog](https://github.com/matthewrudy/memoist/compare/v0.16.0...v0.16.1)
 
 **Merged pull requests:**
 
