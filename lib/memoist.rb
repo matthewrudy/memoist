@@ -38,11 +38,9 @@ module Memoist
   end
 
   def self.escape_punctuation(string)
-    string = string.to_s
+    string = string.is_a?(String) ? string.dup : string.to_s.dup
 
     return string unless string.end_with?('?'.freeze, '!'.freeze)
-
-    string = string.dup if string.frozen?
 
     # A String can't end in both ? and !
     if string.sub!(/\?\Z/, '_query'.freeze)
