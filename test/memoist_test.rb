@@ -67,6 +67,12 @@ class MemoistTest < Minitest::Test
 
     memoize :name, :age
 
+    def age?
+      @counter.call(:age?)
+      true
+    end
+    memoize 'age?'
+
     def sleep(hours = 8)
       @counter.call(:sleep)
       hours
@@ -272,6 +278,13 @@ class MemoistTest < Minitest::Test
     @person.unmemoize_all
   end
 
+  def test_memoization_when_memoize_is_called_with_punctuated_string
+    assert_equal true, @person.age?
+
+    @person.memoize_all
+    @person.unmemoize_all
+  end
+
   def test_memoization_flush_with_punctuation
     assert_equal true, @person.name?
     @person.flush_cache(:name?)
@@ -344,11 +357,11 @@ class MemoistTest < Minitest::Test
   end
 
   def test_all_memoized_structs
-    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Person             memoize :age, :age?, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
-    expected = %w[age is_developer? memoize_protected_test name name? sleep update update_attributes]
+    expected = %w[age age? is_developer? memoize_protected_test name name? sleep update update_attributes]
     structs = Person.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
     assert_equal '@_memoized_name', structs.detect { |s| s.memoized_method == :name }.ivar
