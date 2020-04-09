@@ -100,6 +100,7 @@ class AccurateClock < Clock
 end
 ```
 
+Ruby will not garbage colllect memoized class methods, which can lead to memory bloat if the memoized class methods accepts arguments.
 
 Reload
 ------
