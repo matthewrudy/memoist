@@ -1,5 +1,4 @@
-Memoist
-=============
+# Memoist
 
 [![Build Status](https://travis-ci.org/matthewrudy/memoist.svg?branch=master)](https://travis-ci.org/matthewrudy/memoist)
 
@@ -9,8 +8,7 @@ Since June 2011 ActiveSupport::Memoizable has been deprecated.
 But I love it,
 and so I plan to keep it alive.
 
-Usage
------
+## Usage
 
 Just extend with the Memoist module
 
@@ -38,7 +36,7 @@ person.social_security
 
 And person.social_security will only be calculated once.
 
-Every memoized function (which initially was not accepting any arguments) has a ```(reload)```
+Every memoized function (which initially was not accepting any arguments) has a `(reload)`
 argument you can pass in to bypass and reset the memoization:
 
 ```ruby
@@ -48,7 +46,7 @@ end
 memoize :some_method
 ```
 
-Calling ```some_method``` will be memoized, but calling ```some_method(true)``` will rememoize each time.
+Calling `some_method` will be memoized, but calling `some_method(true)` will rememoize each time.
 
 You can even memoize method that takes arguments.
 
@@ -79,7 +77,7 @@ class Person
 end
 ```
 
-When a sub-class overrides one of its parent's methods and you need to memoize both. 
+When a sub-class overrides one of its parent's methods and you need to memoize both.
 Then you can use the `:identifier` parameter in order to help _Memoist_ distinguish between the two.
 
 ```ruby
@@ -100,9 +98,7 @@ class AccurateClock < Clock
 end
 ```
 
-
-Reload
-------
+## Reload
 
 Each memoized function comes with a way to flush the existing value.
 
@@ -124,26 +120,24 @@ If you want to flush the entire memoization cache for an object
 person.flush_cache   # returns an array of flushed memoized methods, e.g. ["social_security", "some_method"]
 ```
 
-Authors
-===========
+# Authors
 
 Everyone who contributed to it in the rails repository.
 
-* Joshua Peek
-* Tarmo Tänav
-* Jeremy Kemper
-* Eugene Pimenov
-* Xavier Noria
-* Niels Ganser
-* Carl Lerche & Yehuda Katz
-* jeem
-* Jay Pignata
-* Damien Mathieu
-* José Valim
-* Matthew Rudy Jacobs
+- Joshua Peek
+- Tarmo Tänav
+- Jeremy Kemper
+- Eugene Pimenov
+- Xavier Noria
+- Niels Ganser
+- Carl Lerche & Yehuda Katz
+- jeem
+- Jay Pignata
+- Damien Mathieu
+- José Valim
+- Matthew Rudy Jacobs
 
-Contributing
-============
+# Contributing
 
 1. Fork it ( https://github.com/matthewrudy/memoist/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
@@ -151,7 +145,6 @@ Contributing
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
 
-License
-=======
+# License
 
 Released under the [MIT License](http://www.opensource.org/licenses/MIT), just as Ruby on Rails is.
