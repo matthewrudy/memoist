@@ -1,6 +1,6 @@
 # Memoist
 
-[![Build Status](https://travis-ci.org/matthewrudy/memoist.svg?branch=master)](https://travis-ci.org/matthewrudy/memoist)
+[![Build Status](https://github.com/matthewrudy/memoist/workflows/ci/badge.svg)](https://github.com/matthewrudy/memoist/actions)
 
 Memoist is an extraction of ActiveSupport::Memoizable.
 
