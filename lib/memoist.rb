@@ -132,8 +132,9 @@ module Memoist
         include InstanceMethods
 
         if method_defined?(unmemoized_method)
-          warn "Already memoized #{method_name}"
-          return
+          default = "AnIdentifier"
+          suggestion = respond_to?(:name) ? name || default : default
+          raise "Already memoized :#{method_name}. Try `memoize :#{method_name}, identifier: '#{suggestion}'` or use `@#{method_name} ||= compute` pattern instead."
         end
         alias_method unmemoized_method, method_name
 

@@ -560,4 +560,35 @@ class MemoistTest < Minitest::Test
     assert_equal 'Yes', person.send(:is_developer?)
     assert_equal 1, person.is_developer_calls
   end
+
+  def test_exception_when_subclass_without_identifier
+    err = assert_raises(StandardError) do
+      Class.new(Person) do
+        def self.name
+          "Staff"
+        end
+        def name
+          'Overwritten'
+        end
+        memoize :name
+      end
+    end
+    assert_equal(
+      "Already memoized :name. Try `memoize :name, identifier: 'Staff'` or use `@name ||= compute` pattern instead.",
+      err.message
+    )
+
+    err = assert_raises(StandardError) do
+      Class.new(Person) do
+        def name
+          'Overwritten'
+        end
+        memoize :name
+      end
+    end
+    assert_equal(
+      "Already memoized :name. Try `memoize :name, identifier: 'AnIdentifier'` or use `@name ||= compute` pattern instead.",
+      err.message
+    )
+  end
 end
