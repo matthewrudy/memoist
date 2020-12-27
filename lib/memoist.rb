@@ -162,7 +162,7 @@ module Memoist
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
             def #{method_name}(reload = false)
-              skip_cache = reload || !instance_variable_defined?("#{memoized_ivar}")
+              skip_cache = reload || !instance_variable_defined?(#{memoized_ivar.to_sym.inspect})
               set_cache = skip_cache && !frozen?
 
               if skip_cache
@@ -204,9 +204,9 @@ module Memoist
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
             def #{method_name}(*args)
-              reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
+              reload = Memoist.extract_reload!(method(#{unmemoized_method.to_sym.inspect}), args)
 
-              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
+              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.to_sym.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
               set_cache = skip_cache && !frozen?
 
               if skip_cache
