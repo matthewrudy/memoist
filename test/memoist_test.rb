@@ -17,40 +17,29 @@ class MemoistTest < Minitest::Test
     end
   end
 
-  class Person
-    extend Memoist
+  module Countable
+    attr_reader :counter
 
     def initialize
       @counter = CallCounter.new
     end
 
-    def name_calls
-      @counter.count(:name)
+    def calls(method_name)
+      counter.count(method_name)
     end
+  end
 
-    def student_name_calls
-      @counter.count(:student_name)
-    end
-
-    def name_query_calls
-      @counter.count(:name?)
-    end
-
-    def is_developer_calls
-      @counter.count(:is_developer?)
-    end
-
-    def age_calls
-      @counter.count(:age)
-    end
+  class Person
+    extend Memoist
+    include Countable
 
     def name
-      @counter.call(:name)
+      counter.call(:name)
       'Josh'
     end
 
     def name?
-      @counter.call(:name?)
+      counter.call(:name?)
       true
     end
     memoize :name?
@@ -61,30 +50,26 @@ class MemoistTest < Minitest::Test
     memoize :update
 
     def age
-      @counter.call(:age)
+      counter.call(:age)
       nil
     end
 
     memoize :name, :age
 
     def age?
-      @counter.call(:age?)
+      counter.call(:age?)
       true
     end
     memoize 'age?'
 
     def sleep(hours = 8)
-      @counter.call(:sleep)
+      counter.call(:sleep)
       hours
     end
     memoize :sleep
 
-    def sleep_calls
-      @counter.count(:sleep)
-    end
-
     def update_attributes(_options = {})
-      @counter.call(:update_attributes)
+      counter.call(:update_attributes)
       true
     end
     memoize :update_attributes
@@ -103,7 +88,7 @@ class MemoistTest < Minitest::Test
     private
 
     def is_developer?
-      @counter.call(:is_developer?)
+      counter.call(:is_developer?)
       'Yes'
     end
     memoize :is_developer?
@@ -111,7 +96,7 @@ class MemoistTest < Minitest::Test
 
   class Student < Person
     def name
-      @counter.call(:student_name)
+      counter.call(:student_name)
       "Student #{super}"
     end
     memoize :name, identifier: :student
@@ -125,24 +110,20 @@ class MemoistTest < Minitest::Test
   end
 
   class Company
-    attr_reader :name_calls
-    def initialize
-      @name_calls = 0
-    end
+    include Countable
 
     def name
-      @name_calls += 1
+      counter.call(:name)
       '37signals'
     end
   end
 
   module Rates
     extend Memoist
+    include Countable
 
-    attr_reader :sales_tax_calls
     def sales_tax(price)
-      @sales_tax_calls ||= 0
-      @sales_tax_calls += 1
+      counter.call(:sales_tax)
       price * 0.1025
     end
     memoize :sales_tax
@@ -150,15 +131,11 @@ class MemoistTest < Minitest::Test
 
   class Calculator
     extend Memoist
+    include Countable
     include Rates
 
-    attr_reader :fib_calls
-    def initialize
-      @fib_calls = 0
-    end
-
     def fib(n)
-      @fib_calls += 1
+      counter.call(:fib)
 
       if n == 0 || n == 1
         n
@@ -177,11 +154,11 @@ class MemoistTest < Minitest::Test
     end
     memoize :add_or_subtract
 
-    def counter
-      @count ||= 0
-      @count += 1
+    def incrementor
+      @incrementor ||= 0
+      @incrementor += 1
     end
-    memoize :counter
+    memoize :incrementor
   end
 
   class Book
@@ -243,32 +220,32 @@ class MemoistTest < Minitest::Test
 
   def test_memoization
     assert_equal 'Josh', @person.name
-    assert_equal 1, @person.name_calls
+    assert_equal 1, @person.calls(:name)
 
     3.times { assert_equal 'Josh', @person.name }
-    assert_equal 1, @person.name_calls
+    assert_equal 1, @person.calls(:name)
   end
 
   def test_memoize_with_optional_arguments
     assert_equal 4, @person.sleep(4)
-    assert_equal 1, @person.sleep_calls
+    assert_equal 1, @person.calls(:sleep)
 
     3.times { assert_equal 4, @person.sleep(4) }
-    assert_equal 1, @person.sleep_calls
+    assert_equal 1, @person.calls(:sleep)
 
     3.times { assert_equal 4, @person.sleep(4, :reload) }
-    assert_equal 4, @person.sleep_calls
+    assert_equal 4, @person.calls(:sleep)
   end
 
   def test_memoize_with_options_hash
     assert_equal true, @person.update_attributes(age: 21, name: 'James')
-    assert_equal 1, @person.update_attributes_calls
+    assert_equal 1, @person.calls(:update_attributes)
 
     3.times { assert_equal true, @person.update_attributes(age: 21, name: 'James') }
-    assert_equal 1, @person.update_attributes_calls
+    assert_equal 1, @person.calls(:update_attributes)
 
     3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, :reload) }
-    assert_equal 4, @person.update_attributes_calls
+    assert_equal 4, @person.calls(:update_attributes)
   end
 
   def test_memoization_with_punctuation
@@ -289,33 +266,33 @@ class MemoistTest < Minitest::Test
     assert_equal true, @person.name?
     @person.flush_cache(:name?)
     3.times { assert_equal true, @person.name? }
-    assert_equal 2, @person.name_query_calls
+    assert_equal 2, @person.calls(:name?)
   end
 
   def test_memoization_with_nil_value
     assert_nil @person.age
-    assert_equal 1, @person.age_calls
+    assert_equal 1, @person.calls(:age)
 
     3.times { assert_nil @person.age }
-    assert_equal 1, @person.age_calls
+    assert_equal 1, @person.calls(:age)
   end
 
   def test_reloadable
-    assert_equal 1, @calculator.counter
-    assert_equal 2, @calculator.counter(:reload)
-    assert_equal 2, @calculator.counter
-    assert_equal 3, @calculator.counter(true)
-    assert_equal 3, @calculator.counter
+    assert_equal 1, @calculator.incrementor
+    assert_equal 2, @calculator.incrementor(:reload)
+    assert_equal 2, @calculator.incrementor
+    assert_equal 3, @calculator.incrementor(true)
+    assert_equal 3, @calculator.incrementor
   end
 
   def test_flush_cache
-    assert_equal 1, @calculator.counter
+    assert_equal 1, @calculator.incrementor
 
-    assert @calculator.instance_variable_get(:@_memoized_counter)
-    @calculator.flush_cache(:counter)
-    assert_equal false, @calculator.instance_variable_defined?(:@_memoized_counter)
+    assert @calculator.instance_variable_get(:@_memoized_incrementor)
+    @calculator.flush_cache(:incrementor)
+    assert_equal false, @calculator.instance_variable_defined?(:@_memoized_incrementor)
 
-    assert_equal 2, @calculator.counter
+    assert_equal 2, @calculator.incrementor
   end
 
   def test_class_flush_cache
@@ -346,14 +323,14 @@ class MemoistTest < Minitest::Test
   end
 
   def test_unmemoize_all
-    assert_equal 1, @calculator.counter
+    assert_equal 1, @calculator.incrementor
 
-    assert_equal true, @calculator.instance_variable_defined?(:@_memoized_counter)
-    assert @calculator.instance_variable_get(:@_memoized_counter)
+    assert_equal true, @calculator.instance_variable_defined?(:@_memoized_incrementor)
+    assert @calculator.instance_variable_get(:@_memoized_incrementor)
     @calculator.unmemoize_all
-    assert_equal false, @calculator.instance_variable_defined?(:@_memoized_counter)
+    assert_equal false, @calculator.instance_variable_defined?(:@_memoized_incrementor)
 
-    assert_equal 2, @calculator.counter
+    assert_equal 2, @calculator.incrementor
   end
 
   def test_all_memoized_structs
@@ -403,7 +380,7 @@ class MemoistTest < Minitest::Test
 
   def test_memoize_all
     @calculator.memoize_all
-    assert_equal true, @calculator.instance_variable_defined?(:@_memoized_counter)
+    assert_equal true, @calculator.instance_variable_defined?(:@_memoized_incrementor)
   end
 
   def test_memoize_all_subclasses
@@ -426,9 +403,9 @@ class MemoistTest < Minitest::Test
   end
 
   def test_memoization_cache_is_different_for_each_instance
-    assert_equal 1, @calculator.counter
-    assert_equal 2, @calculator.counter(:reload)
-    assert_equal 1, Calculator.new.counter
+    assert_equal 1, @calculator.incrementor
+    assert_equal 2, @calculator.incrementor(:reload)
+    assert_equal 1, Calculator.new.incrementor
   end
 
   def test_memoization_class_variables
@@ -449,16 +426,16 @@ class MemoistTest < Minitest::Test
 
   def test_memoization_with_args
     assert_equal 55, @calculator.fib(10)
-    assert_equal 11, @calculator.fib_calls
+    assert_equal 11, @calculator.calls(:fib)
   end
 
   def test_reloadable_with_args
     assert_equal 55, @calculator.fib(10)
-    assert_equal 11, @calculator.fib_calls
+    assert_equal 11, @calculator.calls(:fib)
     assert_equal 55, @calculator.fib(10, :reload)
-    assert_equal 12, @calculator.fib_calls
+    assert_equal 12, @calculator.calls(:fib)
     assert_equal 55, @calculator.fib(10, true)
-    assert_equal 13, @calculator.fib_calls
+    assert_equal 13, @calculator.calls(:fib)
   end
 
   def test_memoization_with_boolean_arg
@@ -472,19 +449,19 @@ class MemoistTest < Minitest::Test
       company.memoize :name
 
       assert_equal '37signals', company.name
-      assert_equal 1, company.name_calls
+      assert_equal 1, company.calls(:name)
       assert_equal '37signals', company.name
-      assert_equal 1, company.name_calls
+      assert_equal 1, company.calls(:name)
     end
   end
 
   def test_memoized_module_methods
     assert_equal 1.025, @calculator.sales_tax(10)
-    assert_equal 1, @calculator.sales_tax_calls
+    assert_equal 1, @calculator.calls(:sales_tax)
     assert_equal 1.025, @calculator.sales_tax(10)
-    assert_equal 1, @calculator.sales_tax_calls
+    assert_equal 1, @calculator.calls(:sales_tax)
     assert_equal 2.5625, @calculator.sales_tax(25)
-    assert_equal 2, @calculator.sales_tax_calls
+    assert_equal 2, @calculator.calls(:sales_tax)
   end
 
   def test_object_memoized_module_methods
@@ -492,11 +469,11 @@ class MemoistTest < Minitest::Test
     company.extend(Rates)
 
     assert_equal 1.025, company.sales_tax(10)
-    assert_equal 1, company.sales_tax_calls
+    assert_equal 1, company.calls(:sales_tax)
     assert_equal 1.025, company.sales_tax(10)
-    assert_equal 1, company.sales_tax_calls
+    assert_equal 1, company.calls(:sales_tax)
     assert_equal 2.5625, company.sales_tax(25)
-    assert_equal 2, company.sales_tax_calls
+    assert_equal 2, company.calls(:sales_tax)
   end
 
   def test_double_memoization_with_identifier
@@ -529,8 +506,8 @@ class MemoistTest < Minitest::Test
     student = Student.new
     student.name
     student.name
-    assert_equal 1, student.student_name_calls
-    assert_equal 1, student.name_calls
+    assert_equal 1, student.calls(:student_name)
+    assert_equal 1, student.calls(:name)
   end
 
   def test_memoization_is_chainable
@@ -556,8 +533,8 @@ class MemoistTest < Minitest::Test
 
     assert_raises(NoMethodError) { person.is_developer? }
     assert_equal 'Yes', person.send(:is_developer?)
-    assert_equal 1, person.is_developer_calls
+    assert_equal 1, person.calls(:is_developer?)
     assert_equal 'Yes', person.send(:is_developer?)
-    assert_equal 1, person.is_developer_calls
+    assert_equal 1, person.calls(:is_developer?)
   end
 end
