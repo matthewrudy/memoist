@@ -74,9 +74,40 @@ class MemoistTest < Minitest::Test
     end
     memoize :update_attributes
 
-    def update_attributes_calls
-      @counter.count(:update_attributes)
+    def rest(*args)
+      counter.call(:rest)
+
+      args.each_with_index.each_with_object({}) do |(arg, i), memo|
+        memo[i + 1] = arg
+      end
     end
+    memoize :rest
+
+    def rest_and_kwargs(*args, **options)
+      counter.call(:rest_and_kwargs)
+
+      i = 0
+
+      rest = args.each_with_object({}) do |arg, memo|
+        memo[i += 1] = arg
+      end
+
+      kwargs = options.each_with_object({}) do |(key, value), memo|
+        memo[i += 1] = [key, value]
+      end
+
+      { rest: rest, kwargs: kwargs }
+    end
+    memoize :rest_and_kwargs
+
+    def kwargs(**options)
+      counter.call(:kwargs)
+
+      options.each_with_index.each_with_object({}) do |((key, value), i), memo|
+        memo[i += 1] = [key, value]
+      end
+    end
+    memoize :kwargs
 
     protected
 
@@ -338,7 +369,7 @@ class MemoistTest < Minitest::Test
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
-    expected = %w[age age? is_developer? memoize_protected_test name name? sleep update update_attributes]
+    expected = %w[age age? is_developer? memoize_protected_test name name? sleep update update_attributes rest rest_and_kwargs kwargs].sort
     structs = Person.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
     assert_equal '@_memoized_name', structs.detect { |s| s.memoized_method == :name }.ivar
@@ -536,5 +567,50 @@ class MemoistTest < Minitest::Test
     assert_equal 1, person.calls(:is_developer?)
     assert_equal 'Yes', person.send(:is_developer?)
     assert_equal 1, person.calls(:is_developer?)
+  end
+
+  def test_rest
+    person = Person.new
+
+    3.times do
+      assert_equal({ 1 => :one, 2 => :two, 3 => :three }, person.rest(:one, :two, :three))
+    end
+
+    assert_equal 1, person.calls(:rest)
+  end
+
+  def test_rest_and_kwargs
+    person = Person.new
+
+    3.times do
+      assert_equal({
+        rest: {
+          1 => :one,
+          2 => :two,
+          3 => :three
+        },
+        kwargs: {
+          4 => [:four, :five],
+          5 => [:six, :seven]
+        }
+      },
+      person.rest_and_kwargs(:one, :two, :three, four: :five, six: :seven))
+    end
+
+    assert_equal 1, person.calls(:rest_and_kwargs)
+  end
+
+  def test_kwargs
+    person = Person.new
+
+    3.times do
+      assert_equal({
+        1 => [:four, :five],
+        2 => [:six, :seven]
+      },
+      person.kwargs(four: :five, six: :seven))
+    end
+
+    assert_equal 1, person.calls(:kwargs)
   end
 end
