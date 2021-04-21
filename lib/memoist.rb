@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'memoist/version'
+require 'ruby2_keywords'
 
 module Memoist
   def self.extended(extender)
@@ -203,7 +204,7 @@ module Memoist
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(*args)
+            ruby2_keywords def #{method_name}(*args)
               reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
 
               skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
