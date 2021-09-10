@@ -50,11 +50,11 @@ module Memoist
     string
   end
 
-  def self.memoist_eval(klass, *args, &block)
+  def self.memoist_eval(klass, *args, **kwargs, &block)
     if klass.respond_to?(:class_eval)
-      klass.class_eval(*args, &block)
+      klass.class_eval(*args, **kwargs, &block)
     else
-      klass.singleton_class.class_eval(*args, &block)
+      klass.singleton_class.class_eval(*args, **kwargs, &block)
     end
   end
 
@@ -203,21 +203,21 @@ module Memoist
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(*args)
+            def #{method_name}(*args, **kwargs)
               reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
 
-              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
+              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args+kwargs.values))
               set_cache = skip_cache && !frozen?
 
               if skip_cache
-                value = #{unmemoized_method}(*args)
+                value = #{unmemoized_method}(*args, **kwargs)
               else
-                value = #{memoized_ivar}[args]
+                value = #{memoized_ivar}[args+kwargs.values]
               end
 
               if set_cache
                 #{memoized_ivar} ||= {}
-                #{memoized_ivar}[args] = value
+                #{memoized_ivar}[args+kwargs.values] = value
               end
 
               value
