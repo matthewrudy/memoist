@@ -93,6 +93,16 @@ class MemoistTest < Minitest::Test
       @counter.count(:update_attributes)
     end
 
+    def do_with_special(_regular = 10, special_one: true, special_two: true)
+      @counter.call(:do_with_special)
+      true
+    end
+    memoize :do_with_special
+
+    def do_with_special_calls
+      @counter.count(:do_with_special)
+    end
+
     protected
 
     def memoize_protected_test
@@ -271,6 +281,23 @@ class MemoistTest < Minitest::Test
     assert_equal 4, @person.update_attributes_calls
   end
 
+  def test_memoize_with_kwargs
+    assert_equal true, @person.do_with_special(1, special_one: true)
+    assert_equal 1, @person.do_with_special_calls
+
+    3.times { assert_equal true, @person.do_with_special(1, special_one: true) }
+    assert_equal 1, @person.do_with_special_calls
+
+    assert_equal true, @person.do_with_special(2)
+    assert_equal 2, @person.do_with_special_calls
+
+    assert_equal true, @person.do_with_special(1, special_one: false)
+    assert_equal 3, @person.do_with_special_calls
+
+    assert_equal true, @person.do_with_special(1, special_two: false)
+    assert_equal 4, @person.do_with_special_calls
+  end
+
   def test_memoization_with_punctuation
     assert_equal true, @person.name?
 
@@ -361,7 +388,7 @@ class MemoistTest < Minitest::Test
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
-    expected = %w[age age? is_developer? memoize_protected_test name name? sleep update update_attributes]
+    expected = %w[age age? do_with_special is_developer? memoize_protected_test name name? sleep update update_attributes]
     structs = Person.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
     assert_equal '@_memoized_name', structs.detect { |s| s.memoized_method == :name }.ivar

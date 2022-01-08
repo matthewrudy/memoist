@@ -21,6 +21,9 @@ jobs:
           - ruby: 2.4.1
           - ruby: 2.5.1
           - ruby: 2.6.0
+          - ruby: 2.7.5
+          - ruby: 3.0.3
+          - ruby: 3.1.0
           - ruby: ruby-head
           - ruby: jruby-d19
           - ruby: jruby-9.1.9.0
