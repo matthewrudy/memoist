@@ -13,6 +13,16 @@ module Memoist
     end
   end
 
+  def self.extended(extender)
+    Memoist.memoist_eval(extender) do
+      unless singleton_class.method_defined?(:memoized_methods)
+        def self.memoized_methods
+          @_memoized_methods ||= []
+        end
+      end
+    end
+  end
+
   def self.memoized_ivar_for(method_name, identifier = nil)
     "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name)}"
   end
@@ -59,7 +69,7 @@ module Memoist
   end
 
   def self.extract_reload!(method, args)
-    if args.length == method.arity.abs + 1 && (args.last == true || args.last == :reload)
+    if args.length == method.arity.abs + 2 && (args.last == true || args.last == :reload)
       reload = args.pop
     end
     reload
@@ -123,6 +133,9 @@ module Memoist
 
   def memoize(*method_names)
     identifier = method_names.pop[:identifier] if method_names.last.is_a?(Hash)
+    if method_names.last.is_a?(Hash)
+      identifier = method_names.pop[:identifier]
+    end
 
     method_names.each do |method_name|
       unmemoized_method = Memoist.unmemoized_method_for(method_name, identifier)
@@ -203,14 +216,17 @@ module Memoist
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(*args)
+            def #{method_name}(*positioned_args, **named_args)
+              args = [named_args, *positioned_args]
               reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
 
               skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
               set_cache = skip_cache && !frozen?
 
               if skip_cache
-                value = #{unmemoized_method}(*args)
+                named_args, *positioned_args = args
+                positioned_args.pop if !reload.nil? && [true, :reload].include?(positioned_args.last)
+                value = #{unmemoized_method}(*positioned_args, **named_args)
               else
                 value = #{memoized_ivar}[args]
               end
