@@ -58,9 +58,11 @@ module Memoist
     end
   end
 
-  def self.extract_reload!(method, args)
+  def self.extract_reload!(method, args, kwargs={})
     if args.length == method.arity.abs + 1 && (args.last == true || args.last == :reload)
       reload = args.pop
+    elsif !kwargs.nil?
+      reload = kwargs.delete(:reload_memoize)
     end
     reload
   end
@@ -202,27 +204,51 @@ module Memoist
           #   value
           # end
 
-          module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(*args)
-              reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
+          if Memoist.ruby_3_kw_args?
+            module_eval <<-EOS, __FILE__, __LINE__ + 1
+              def #{method_name}(*args, **kwargs)
+                reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args, kwargs)
 
-              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
-              set_cache = skip_cache && !frozen?
+                skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?([args, kwargs]))
+                set_cache = skip_cache && !frozen?
 
-              if skip_cache
-                value = #{unmemoized_method}(*args)
-              else
-                value = #{memoized_ivar}[args]
+                if skip_cache
+                  value = #{unmemoized_method}(*args, **kwargs)
+                else
+                  value = #{memoized_ivar}[[args, kwargs]]
+                end
+
+                if set_cache
+                  #{memoized_ivar} ||= {}
+                  #{memoized_ivar}[[args, kwargs]] = value
+                end
+
+                value
               end
+            EOS
+          else
+            module_eval <<-EOS, __FILE__, __LINE__ + 1
+              def #{method_name}(*args)
+                reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
 
-              if set_cache
-                #{memoized_ivar} ||= {}
-                #{memoized_ivar}[args] = value
+                skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
+                set_cache = skip_cache && !frozen?
+
+                if skip_cache
+                  value = #{unmemoized_method}(*args)
+                else
+                  value = #{memoized_ivar}[args]
+                end
+
+                if set_cache
+                  #{memoized_ivar} ||= {}
+                  #{memoized_ivar}[args] = value
+                end
+
+                value
               end
-
-              value
-            end
-          EOS
+            EOS
+          end
         end
 
         if private_method_defined?(unmemoized_method)
@@ -234,5 +260,10 @@ module Memoist
     end
     # return a chainable method_name symbol if we can
     method_names.length == 1 ? method_names.first : method_names
+  end
+
+
+  def self.ruby_3_kw_args?
+    RUBY_VERSION.split('.', 2).first.to_i >= 3
   end
 end

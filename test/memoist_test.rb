@@ -93,6 +93,16 @@ class MemoistTest < Minitest::Test
       @counter.count(:update_attributes)
     end
 
+    def update_attributes_kw(name: nil, age: nil)
+      @counter.call(:update_attributes_kw)
+      true
+    end
+    memoize :update_attributes_kw
+
+    def update_attributes_kw_calls
+      @counter.count(:update_attributes_kw)
+    end
+
     protected
 
     def memoize_protected_test
@@ -258,6 +268,11 @@ class MemoistTest < Minitest::Test
 
     3.times { assert_equal 4, @person.sleep(4, :reload) }
     assert_equal 4, @person.sleep_calls
+
+    if Memoist.ruby_3_kw_args?
+      3.times { assert_equal 4, @person.sleep(4, reload_memoize: true) }
+      assert_equal 7, @person.sleep_calls
+    end
   end
 
   def test_memoize_with_options_hash
@@ -269,7 +284,26 @@ class MemoistTest < Minitest::Test
 
     3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, :reload) }
     assert_equal 4, @person.update_attributes_calls
+
+    if Memoist.ruby_3_kw_args?
+      3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, reload_memoize: true) }
+      assert_equal 7, @person.update_attributes_calls
+    end
   end
+
+  def test_memoize_with_kw_args
+    assert_equal true, @person.update_attributes_kw(age: 21, name: 'James')
+    assert_equal 1, @person.update_attributes_kw_calls
+
+    3.times { assert_equal true, @person.update_attributes_kw(age: 21, name: 'James') }
+    assert_equal 1, @person.update_attributes_kw_calls
+
+    if Memoist.ruby_3_kw_args?
+      3.times { assert_equal true, @person.update_attributes_kw(age: 21, name: 'James', reload_memoize: true) }
+      assert_equal 4, @person.update_attributes_kw_calls
+    end
+  end
+
 
   def test_memoization_with_punctuation
     assert_equal true, @person.name?
@@ -357,11 +391,11 @@ class MemoistTest < Minitest::Test
   end
 
   def test_all_memoized_structs
-    # Person             memoize :age, :age?, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Person             memoize :age, :age?, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes, :update_attributes_kw
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
-    expected = %w[age age? is_developer? memoize_protected_test name name? sleep update update_attributes]
+    expected = %w[age age? is_developer? memoize_protected_test name name? sleep update update_attributes update_attributes_kw]
     structs = Person.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
     assert_equal '@_memoized_name', structs.detect { |s| s.memoized_method == :name }.ivar
@@ -378,7 +412,7 @@ class MemoistTest < Minitest::Test
   end
 
   def test_unmemoize_all_subclasses
-    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes, :update_attributes_kw
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
@@ -407,7 +441,7 @@ class MemoistTest < Minitest::Test
   end
 
   def test_memoize_all_subclasses
-    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes, :update_attributes_kw
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
@@ -500,7 +534,7 @@ class MemoistTest < Minitest::Test
   end
 
   def test_double_memoization_with_identifier
-    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes
+    # Person             memoize :age, :is_developer?, :memoize_protected_test, :name, :name?, :sleep, :update, :update_attributes, :update_attributes_kw
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 

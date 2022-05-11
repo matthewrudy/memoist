@@ -104,7 +104,7 @@ Each memoized function comes with a way to flush the existing value.
 
 ```ruby
 person.social_security       # returns the memoized value
-person.social_security(true) # bypasses the memoized value and rememoizes it
+person.social_security(true) # Same for rubies >= 3.0.0
 ```
 
 This also works with a memoized method with arguments
@@ -112,13 +112,26 @@ This also works with a memoized method with arguments
 ```ruby
 person.taxes_due(100_000)       # returns the memoized value
 person.taxes_due(100_000, true) # bypasses the memoized value and rememoizes it
+person.taxes_due(100_000, reload_memoize: true) # Same for rubies >= 3.0.0
 ```
+
+Ruby 3 separates keyword arguments from positional arguments, which comes
+in cost of some incompatibility.
+```ruby
+person.update_attributes(age: 21, name: 'James')
+# Works for rubies < 3.0.0, not works for rubies >= 3.0.0
+person.update_attributes({age: 21, name: 'James'}, :reload)
+# For rubies >= 3.0.0
+person.update_attributes(age: 21, name: 'James', reload_memoize: true)
+```
+
 
 If you want to flush the entire memoization cache for an object
 
 ```ruby
 person.flush_cache   # returns an array of flushed memoized methods, e.g. ["social_security", "some_method"]
 ```
+
 
 # Authors
 
