@@ -58,11 +58,11 @@ module Memoist
     end
   end
 
-  def self.extract_reload!(method, args, hargs)
+  def self.extract_reload!(method, args, kwargs)
     if args.length == method.arity.abs + 1 && (args.last == true || args.last == :reload)
       reload = args.pop
-    elsif !hargs.nil?
-      reload = hargs.delete(:reload_memoize)
+    elsif !kwargs.nil?
+      reload = kwargs.delete(:reload_memoize)
     end
     reload
   end
@@ -205,21 +205,21 @@ module Memoist
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(*args, **hargs)
-              reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
+            def #{method_name}(*args, **kwargs)
+              reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args, kwargs)
 
-              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?([args, hargs]))
+              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?([args, kwargs]))
               set_cache = skip_cache && !frozen?
 
               if skip_cache
-                value = #{unmemoized_method}(*args, **hargs)
+                value = #{unmemoized_method}(*args, **kwargs)
               else
-                value = #{memoized_ivar}[[args, hargs]]
+                value = #{memoized_ivar}[[args, kwargs]]
               end
 
               if set_cache
                 #{memoized_ivar} ||= {}
-                #{memoized_ivar}[[args, hargs]] = value
+                #{memoized_ivar}[[args, kwargs]] = value
               end
 
               value
