@@ -3,6 +3,34 @@
 require 'memoist/version'
 
 module Memoist
+  OPERATOR_METHOD_NAMES = {
+    '[]'  =>  '__ELEMENT_ACCESS_OP__',
+    '[]=' =>  '__ELEMENT_ASSIGNMENT_OP__',
+    '**'  =>  '__EXPOENTIATION_OP__',
+    '!'   =>  '__NEGATION_BANG_OP__',
+    '~'   =>  '__COMPLEMENT_OP__',
+    '+@'  =>  '__UNARY_PLUS_OP__',
+    '-@'  =>  '__UNARY_MINUS_OP__',
+    '*'   =>  '__MULTIPLICATION_OP__',
+    '/'   =>  '__DIVISION_OP__',
+    '%'   =>  '__MODULO_OP__',
+    '+'   =>  '__PLUS_OP__',
+    '-'   =>  '__MINUS_OP__',
+    '>>'  =>  '__BITWISE_SHIFT_RIGHT_OP__',
+    '<<'  =>  '__BITWISE_SHIFT_LEFT_OP__',
+    '&'   =>  '__BITWISE_AND_OP__',
+    '^'   =>  '__BITWISE_EXCLUSIVE_OR_OP__',
+    '|'   =>  '__BITWISE_OR_OP__',
+    '<='  =>  '__LTE_OP__',
+    '<'   =>  '__LT_OP__',
+    '>'   =>  '__GT_OP__',
+    '>='  =>  '__GTE_OP__',
+    '<=>' =>  '__SPACESHIP_OP__',
+    '=='  =>  '__EQUALITY_OP__',
+    '===' =>  '__TRIPLE_EQUALITY_OP__',
+    '=~'  =>  '__MATCH_OP__',
+  }.freeze
+
   def self.extended(extender)
     Memoist.memoist_eval(extender) do
       unless singleton_class.method_defined?(:memoized_methods)
@@ -13,12 +41,16 @@ module Memoist
     end
   end
 
+  def self.method_name_for(method_name)
+    OPERATOR_METHOD_NAMES.fetch(method_name.to_s, method_name)
+  end
+
   def self.memoized_ivar_for(method_name, identifier = nil)
-    "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name)}"
+    "@#{memoized_prefix(identifier)}_#{escape_punctuation(method_name_for(method_name))}"
   end
 
   def self.unmemoized_method_for(method_name, identifier = nil)
-    "#{unmemoized_prefix(identifier)}_#{method_name}".to_sym
+    "#{unmemoized_prefix(identifier)}_#{method_name_for(method_name)}".to_sym
   end
 
   def self.memoized_prefix(identifier = nil)
