@@ -97,6 +97,16 @@ class MemoistTest < Minitest::Test
       @counter.count(:do_with_special)
     end
 
+    def format_metadata(metadata)
+      @counter.call(:format_metadata)
+      "#{metadata[:grade]}: #{metadata[:comment]}"
+    end
+    memoize :format_metadata
+
+    def format_metadata_calls
+      @counter.count(:format_metadata)
+    end
+
     protected
 
     def memoize_protected_test
@@ -292,6 +302,18 @@ class MemoistTest < Minitest::Test
     assert_equal 4, @person.do_with_special_calls
   end
 
+  def test_memoize_with_hash_for_ruby3
+    metadata = { grade: 42, comment: 'The meaning.' }
+    assert_equal '42: The meaning.', @person.format_metadata(metadata)
+    assert_equal 1, @person.format_metadata_calls
+
+    assert_equal '42: The meaning.', @person.format_metadata(metadata)
+    assert_equal 1, @person.format_metadata_calls
+
+    assert_equal '44: The name.', @person.format_metadata({ grade: 44, comment: 'The name.'})
+    assert_equal 2, @person.format_metadata_calls
+  end
+
   def test_memoization_with_punctuation
     assert_equal true, @person.name?
 
@@ -375,7 +397,7 @@ class MemoistTest < Minitest::Test
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
-    expected = %w[age do_with_special is_developer? memoize_protected_test name name? sleep update update_attributes]
+    expected = %w[age do_with_special format_metadata is_developer? memoize_protected_test name name? sleep update update_attributes]
     structs = Person.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
     assert_equal '@_memoized_name', structs.detect { |s| s.memoized_method == :name }.ivar
