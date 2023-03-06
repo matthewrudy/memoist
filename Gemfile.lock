@@ -1,0 +1,24 @@
+PATH
+  remote: .
+  specs:
+    memoist (0.16.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    benchmark-ips (2.11.0)
+    minitest (5.18.0)
+    rake (13.0.6)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  benchmark-ips
+  bundler
+  memoist!
+  minitest (~> 5.10)
+  rake
+
+BUNDLED WITH
+   2.4.3
